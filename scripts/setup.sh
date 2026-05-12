@@ -186,10 +186,12 @@ if ! command -v rsyslogd &>/dev/null; then
     echo "    Installed rsyslog"
 fi
 
-# Install rsyslog config for local6 → /var/log/shell-history.log
-install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/guilty-spark-shell.conf
+# Install rsyslog config — 00- prefix ensures it loads before defaults
+install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/00-guilty-spark.conf
+# Remove old filename if present
+rm -f /etc/rsyslog.d/guilty-spark-shell.conf 2>/dev/null
 systemctl restart rsyslog 2>/dev/null || service rsyslog restart 2>/dev/null || true
-echo "    Installed /etc/rsyslog.d/guilty-spark-shell.conf"
+echo "    Installed /etc/rsyslog.d/00-guilty-spark.conf"
 
 # Install shell hook to /etc/profile.d/ (login shells)
 install -m 644 "$REPO_ROOT/config/shell/guilty-spark-logger.sh" /etc/profile.d/guilty-spark-logger.sh
