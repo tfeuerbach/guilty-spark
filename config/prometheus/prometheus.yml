@@ -1,0 +1,31 @@
+# Guilty Spark — Prometheus config
+# All targets (local + remote) are managed via file_sd_configs.
+# setup.sh creates the initial local entries; add-agent.sh appends remote ones.
+# Prometheus auto-reloads target files every 30s.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'gpu'
+    file_sd_configs:
+      - files:
+          - '/etc/prometheus/targets/gpu.json'
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [agent_name]
+        target_label: instance
+      - regex: agent_name
+        action: labeldrop
+
+  - job_name: 'node'
+    file_sd_configs:
+      - files:
+          - '/etc/prometheus/targets/node.json'
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [agent_name]
+        target_label: instance
+      - regex: agent_name
+        action: labeldrop

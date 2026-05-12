@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""guilty-spark status — inspect the monitoring stack at a glance."""
+
+import json
+import os
+import re
+import socket
+import subprocess
+import sys
+import urllib.request
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# ── colours (disabled when piped) ────────────────────────────────────────
+
+_TTY = sys.stdout.isatty()
+
+def _c(code):
+    return f"\033[{code}m" if _TTY else ""
+
+BOLD, DIM, RESET = _c(1), _c(2), _c(0)
+GREEN, RED, YELLOW, CYAN = _c(32), _c(31), _c(33), _c(36)
+
+
+def _visible_len(s):
+    return len(re.sub(r"\033\[[0-9;]*m", "", s))
+
+
+def _pad(s, width):
+    """Pad string to `width` visible characters, ignoring ANSI escapes."""
+    return s + " " * max(0, width - _visible_len(s))
+
+
+def _dot(state):
+    if state == "up":
+        return f"{GREEN}●{RESET}"
+    if state == "down":
+        return f"{RED}●{RESET}"
+    return f"{YELLOW}●{RESET}"
+
+
+# ── data helpers ─────────────────────────────────────────────────────────
+
+def _read_env(path):
+    env = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, _, v = line.partition("=")
+                    env[k.strip()] = v.strip()
+    except FileNotFoundError:
+        pass
+    return env
+
+
+def _load_json(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def _docker_ps():
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "-a", "--filter", "name=guilty-spark",
+             "--format", "{{.Names}}\t{{.Image}}\t{{.Status}}"],
+            capture_output=True, text=True, timeout=10,
+        )
+        out = []
+        for line in r.stdout.strip().splitlines():
+            parts = line.split("\t")
+            if len(parts) == 3:
+                out.append({"name": parts[0], "image": parts[1], "status": parts[2]})
+        return out
+    except Exception:
+        return []
+
+
+def _prom_targets():
+    try:
+        with urllib.request.urlopen(
+            "http://localhost:9090/api/v1/targets", timeout=5
+        ) as r:
+            return json.loads(r.read()).get("data", {}).get("activeTargets", [])
+    except Exception:
+        return None
+
+
+def _port_open(port):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2)
+        s.connect(("localhost", port))
+        s.close()
+        return True
+    except Exception:
+        return False
+
+
+# ── rendering ────────────────────────────────────────────────────────────
+
+def _scrape_cell(target_addr, health_map, prom_reachable):
+    """Return a coloured status cell for one scrape target."""
+    if not target_addr:
+        return f"{DIM}—{RESET}"
+    if not prom_reachable:
+        return f"{_dot('unknown')} ?"
+
+    h, err = health_map.get(target_addr, ("unknown", ""))
+    if h == "up":
+        return f"{_dot('up')} up"
+
+    short = "down"
+    el = err.lower()
+    if "refused" in el:
+        short = "refused"
+    elif "timeout" in el:
+        short = "timeout"
+    elif "no route" in el:
+        short = "no route"
+    return f"{_dot('down')} {short}"
+
+
+def main():
+    env = _read_env(os.path.join(REPO, ".env"))
+    instance = env.get("INSTANCE_NAME", "local")
+
+    gpu_targets = _load_json(os.path.join(REPO, "config/prometheus/targets/gpu.json"))
+    node_targets = _load_json(os.path.join(REPO, "config/prometheus/targets/node.json"))
+
+    # build agent registry
+    agents = {}
+    for t in gpu_targets:
+        n = t.get("labels", {}).get("agent_name", "?")
+        agents.setdefault(n, {"ip": t["labels"].get("agent_ip", "?"),
+                               "gpu": None, "node": None})
+        agents[n]["gpu"] = t["targets"][0]
+    for t in node_targets:
+        n = t.get("labels", {}).get("agent_name", "?")
+        agents.setdefault(n, {"ip": t["labels"].get("agent_ip", "?"),
+                               "gpu": None, "node": None})
+        agents[n]["node"] = t["targets"][0]
+
+    # the central agent uses docker service hostnames (e.g. "dcgm-exporter:9400")
+    local = None
+    for name, info in agents.items():
+        if any("exporter:" in (info.get(k) or "") for k in ("gpu", "node")):
+            local = name
+            break
+    local = local or instance
+
+    containers = _docker_ps()
+    prom = _prom_targets()
+    prom_ok = prom is not None
+
+    health_map = {}
+    if prom_ok:
+        for t in prom:
+            addr = t.get("discoveredLabels", {}).get("__address__", "")
+            health_map[addr] = (t.get("health", "unknown"), t.get("lastError", ""))
+
+    # ── output ───────────────────────────────────────────────────────────
+
+    W = 74
+    print()
+    print(f"  {BOLD}Guilty Spark — Stack Status{RESET}")
+    print(f"  {'═' * W}")
+
+    # ── containers ───────────────────────────────────────────────────────
+
+    local_ip = agents.get(local, {}).get("ip", "—")
+    print()
+    print(f"  {BOLD}Central Node{RESET}  {CYAN}{local}{RESET}  {DIM}({local_ip}){RESET}")
+    print(f"  {'─' * W}")
+
+    if containers:
+        for c in sorted(containers, key=lambda x: x["name"]):
+            short = c["name"].replace("guilty-spark-", "")
+            up = c["status"].startswith("Up")
+            d = _dot("up" if up else "down")
+            sc = GREEN if up else RED
+            img = f"{DIM}{c['image']}{RESET}"
+            print(f"    {d} {_pad(short, 14)}{_pad(img, 60)}{sc}{c['status']}{RESET}")
+    else:
+        print(f"    {_dot('down')} No containers found")
+
+    # ── endpoints ────────────────────────────────────────────────────────
+
+    print()
+    print(f"  {BOLD}Endpoints{RESET}")
+    print(f"  {'─' * W}")
+
+    for label, url, port in [
+        ("Grafana",    "http://localhost:3000", 3000),
+        ("Prometheus", "http://localhost:9090", 9090),
+        ("Loki",       "http://localhost:3100", 3100),
+    ]:
+        up = _port_open(port)
+        print(f"    {_dot('up' if up else 'down')} {label:<14}{DIM}{url}{RESET}")
+
+    # ── agents ───────────────────────────────────────────────────────────
+
+    remotes = {k: v for k, v in agents.items() if k != local}
+    print()
+    print(f"  {BOLD}Agents{RESET}  {DIM}({len(agents)} total, {len(remotes)} remote){RESET}")
+    print(f"  {'─' * W}")
+
+    if not agents:
+        print(f"    {DIM}No agents registered.  ./scripts/add-agent.sh <name> <ip>{RESET}")
+    else:
+        hdr = (f"    {'NAME':<20}{'IP':<18}"
+               f"{'GPU SCRAPE':<14}{'NODE SCRAPE':<14}")
+        print(hdr)
+        print(f"    {'─' * 20}{'─' * 18}{'─' * 14}{'─' * 14}")
+
+        for name in sorted(agents, key=lambda n: (n != local, n)):
+            info = agents[name]
+            tag = f"  {DIM}(central){RESET}" if name == local else ""
+
+            gpu_cell = _scrape_cell(info["gpu"], health_map, prom_ok)
+            node_cell = _scrape_cell(info["node"], health_map, prom_ok)
+
+            col_name = f"{CYAN}{name}{RESET}"
+            col_ip = info["ip"]
+
+            print(f"    {_pad(col_name, 20)}{col_ip:<18}"
+                  f"{_pad(gpu_cell, 14)}{_pad(node_cell, 14)}{tag}")
+
+    print()
+
+
+if __name__ == "__main__":
+    main()

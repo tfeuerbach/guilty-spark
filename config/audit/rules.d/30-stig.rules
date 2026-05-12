@@ -1,0 +1,53 @@
+# Guilty Spark — DoD STIG audit rules (subset)
+# Based on linux-audit/audit-userspace 30-stig.rules
+# Compatible with Ubuntu 20.04 / 22.04 / 24.04
+
+## Time changes
+-a always,exit -F arch=b32 -S adjtimex,settimeofday,stime -F key=time-change
+-a always,exit -F arch=b64 -S adjtimex,settimeofday -F key=time-change
+-a always,exit -F arch=b32 -S clock_settime -F a0=0x0 -F key=time-change
+-a always,exit -F arch=b64 -S clock_settime -F a0=0x0 -F key=time-change
+-a always,exit -F path=/etc/localtime -F perm=wa -F key=time-change
+
+## Identity (passwd, group, shadow)
+-a always,exit -F path=/etc/group -F perm=wa -F key=identity
+-a always,exit -F path=/etc/passwd -F perm=wa -F key=identity
+-a always,exit -F path=/etc/gshadow -F perm=wa -F key=identity
+-a always,exit -F path=/etc/shadow -F perm=wa -F key=identity
+-a always,exit -F path=/etc/security/opasswd -F perm=wa -F key=identity
+
+## System locale
+-a always,exit -S sethostname,setdomainname -F key=system-locale
+-a always,exit -F path=/etc/issue -F perm=wa -F key=system-locale
+-a always,exit -F path=/etc/issue.net -F perm=wa -F key=system-locale
+-a always,exit -F path=/etc/hosts -F perm=wa -F key=system-locale
+-a always,exit -F path=/etc/hostname -F perm=wa -F key=system-locale
+
+## DAC (chmod, chown)
+-a always,exit -F arch=b32 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b32 -S chown,fchown,lchown,fchownat -F auid>=1000 -F auid!=unset -F key=perm_mod
+-a always,exit -F arch=b64 -S chown,fchown,lchown,fchownat -F auid>=1000 -F auid!=unset -F key=perm_mod
+
+## Unauthorized access attempts
+-a always,exit -F arch=b32 -S open,creat,truncate,ftruncate,openat -F exit=-EACCES -F auid>=1000 -F auid!=unset -F key=access
+-a always,exit -F arch=b32 -S open,creat,truncate,ftruncate,openat -F exit=-EPERM -F auid>=1000 -F auid!=unset -F key=access
+-a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat -F exit=-EACCES -F auid>=1000 -F auid!=unset -F key=access
+-a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat -F exit=-EPERM -F auid>=1000 -F auid!=unset -F key=access
+
+## Mount
+-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=unset -F key=export
+-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=unset -F key=export
+
+## Delete/rename
+-a always,exit -F arch=b32 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -F key=delete
+-a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -F key=delete
+
+## Sudoers
+-a always,exit -F path=/etc/sudoers -F perm=wa -F key=actions
+-a always,exit -F dir=/etc/sudoers.d/ -F perm=wa -F key=actions
+
+## Privilege escalation
+-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd
+-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd
+-a always,exit -F path=/usr/bin/pkexec -F perm=x -F key=maybe-escalation

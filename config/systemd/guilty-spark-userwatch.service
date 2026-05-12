@@ -1,0 +1,13 @@
+[Unit]
+Description=Guilty Spark — watch for user changes and regenerate promtail config
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/guilty-spark-userwatch
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

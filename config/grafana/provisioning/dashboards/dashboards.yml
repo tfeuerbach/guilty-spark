@@ -1,0 +1,13 @@
+# Dashboard provider — loads JSON from default/ folder
+apiVersion: 1
+providers:
+  - name: 'Guilty Spark'
+    orgId: 1
+    folder: ''
+    folderUid: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

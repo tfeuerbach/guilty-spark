@@ -1,0 +1,19 @@
+# Environment files (contain real IPs, passwords, instance names)
+.env
+.env.agent
+
+# Generated promtail configs (built from .tmpl by generate-user-metrics.sh)
+config/promtail/promtail-config.yml
+config/promtail/promtail-agent.yml
+
+# Generated Prometheus targets (built by setup.sh / add-agent.sh)
+config/prometheus/targets/
+
+# IDE / editor
+*.code-workspace
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

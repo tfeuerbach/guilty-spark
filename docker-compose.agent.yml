@@ -1,0 +1,68 @@
+# Guilty Spark — Agent-Only Stack
+# Run on remote servers to feed metrics/logs to the central monitoring node.
+# Usage:
+#   1. Copy .env.agent.example to .env and set CENTRAL_IP + INSTANCE_NAME
+#   2. docker compose -f docker-compose.agent.yml up -d
+
+services:
+  dcgm-exporter:
+    image: ${DCGM_IMAGE:-nvidia/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04}
+    container_name: guilty-spark-dcgm
+    profiles: ["gpu"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - DCGM_EXPORTER_LISTEN=:9400
+      - DCGM_EXPORTER_COLLECTORS=/etc/dcgm-exporter/dcgm-metrics.csv
+    volumes:
+      - ./config/dcgm/dcgm-metrics.csv:/etc/dcgm-exporter/dcgm-metrics.csv:ro
+    ports:
+      - "9400:9400"
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:v1.10.2
+    container_name: guilty-spark-node
+    restart: unless-stopped
+    command:
+      - '--path.rootfs=/rootfs'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/textfile'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /var/lib/guilty-spark/textfile:/textfile:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:3.6.8
+    container_name: guilty-spark-promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml -config.expand-env=true
+    environment:
+      - CENTRAL_IP=${CENTRAL_IP}
+      - INSTANCE_NAME=${INSTANCE_NAME}
+    volumes:
+      - ./config/promtail/promtail-agent.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
