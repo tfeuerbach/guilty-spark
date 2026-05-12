@@ -177,6 +177,15 @@ echo ""
 # ─── Step 2: Shell command logger (bash + zsh) ───
 print_step "Installing shell command logger..."
 
+# rsyslog is required for shell-history.log, auth.log, snoopy.log
+if ! command -v rsyslogd &>/dev/null; then
+    print_warn "rsyslog not found — installing (required for log routing)..."
+    $PKG_INSTALL rsyslog
+    systemctl enable rsyslog 2>/dev/null || true
+    systemctl start rsyslog 2>/dev/null || true
+    echo "    Installed rsyslog"
+fi
+
 # Install rsyslog config for local6 → /var/log/shell-history.log
 install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/guilty-spark-shell.conf
 systemctl restart rsyslog 2>/dev/null || service rsyslog restart 2>/dev/null || true
