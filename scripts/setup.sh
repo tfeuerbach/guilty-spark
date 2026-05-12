@@ -174,7 +174,30 @@ print_step "Configuring auditd (command tracking)..."
 "$SCRIPT_DIR/setup-audit.sh" $STIG_FLAG
 echo ""
 
-# ─── Step 2: User metrics + promtail config ───
+# ─── Step 2: Shell command logger (bash + zsh) ───
+print_step "Installing shell command logger..."
+
+# Install rsyslog config for local6 → /var/log/shell-history.log
+install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/guilty-spark-shell.conf
+systemctl restart rsyslog 2>/dev/null || service rsyslog restart 2>/dev/null || true
+echo "    Installed /etc/rsyslog.d/guilty-spark-shell.conf"
+
+# Install shell hook to /etc/profile.d/ (login shells)
+install -m 644 "$REPO_ROOT/config/shell/guilty-spark-logger.sh" /etc/profile.d/guilty-spark-logger.sh
+echo "    Installed /etc/profile.d/guilty-spark-logger.sh"
+
+# Also source from bash.bashrc and zshrc for non-login interactive shells
+for rcfile in /etc/bash.bashrc /etc/zsh/zshrc /etc/zshrc; do
+    if [[ -f "$rcfile" ]] && ! grep -q 'guilty-spark-logger' "$rcfile" 2>/dev/null; then
+        echo "" >> "$rcfile"
+        echo "# Guilty Spark — shell command logging" >> "$rcfile"
+        echo '[ -f /etc/profile.d/guilty-spark-logger.sh ] && . /etc/profile.d/guilty-spark-logger.sh' >> "$rcfile"
+    fi
+done
+echo "    Hooked into bash.bashrc / zshrc for non-login shells"
+echo ""
+
+# ─── Step 3: User metrics + promtail config ───
 print_step "Generating user metrics and promtail config..."
 "$SCRIPT_DIR/generate-user-metrics.sh"
 
@@ -183,7 +206,7 @@ echo "    Found ${user_count} system users"
 echo "    Promtail config generated with UID→username map"
 echo ""
 
-# ─── Step 3: User change watcher + cron fallback ───
+# ─── Step 4: User change watcher + cron fallback ───
 print_step "Installing user change watcher..."
 
 # Install inotify-tools if not present
@@ -209,7 +232,7 @@ chmod 644 /etc/cron.d/guilty-spark
 echo "    Installed /etc/cron.d/guilty-spark (every 5 min fallback)"
 echo ""
 
-# ─── Step 4: Prometheus targets (central only) ───
+# ─── Step 5: Prometheus targets (central only) ───
 if [[ "$ROLE" == "central" ]]; then
     print_step "Configuring Prometheus targets..."
     TARGETS_DIR="$REPO_ROOT/config/prometheus/targets"
@@ -258,7 +281,7 @@ if not os.path.exists(gpu_path):
     echo ""
 fi
 
-# ─── Step 5: Start the stack ───
+# ─── Step 6: Start the stack ───
 if [[ "$ROLE" == "central" ]]; then
     print_step "Starting central monitoring stack..."
     cd "$REPO_ROOT"

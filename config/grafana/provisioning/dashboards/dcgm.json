@@ -184,7 +184,7 @@
         {
           "expr": "avg(DCGM_FI_DEV_GPU_TEMP{instance=~\"$instance\"})",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Avg temp",
           "refId": "A"
         }
       ],
@@ -356,7 +356,7 @@
         {
           "expr": "sum(DCGM_FI_DEV_POWER_USAGE{instance=~\"$instance\"})",
           "interval": "",
-          "legendFormat": "",
+          "legendFormat": "Total power",
           "refId": "A"
         }
       ],

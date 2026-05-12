@@ -190,6 +190,48 @@ else
   systemctl restart auditd 2>/dev/null || true
 fi
 
+# ─── Snoopy Logger (full execve capture with args) ───
+USE_SNOOPY=0
+echo "==> Installing Snoopy Logger (execve interception)..."
+if [[ "$DISTRO_FAMILY" == "debian" ]]; then
+  if apt-cache show snoopy &>/dev/null 2>&1; then
+    DEBIAN_FRONTEND=noninteractive $PKG_INSTALL snoopy 2>/dev/null && USE_SNOOPY=1
+  fi
+elif [[ "$DISTRO_FAMILY" == "rhel" ]]; then
+  if dnf info snoopy &>/dev/null 2>&1 || yum info snoopy &>/dev/null 2>&1; then
+    $PKG_INSTALL snoopy 2>/dev/null && USE_SNOOPY=1
+  fi
+fi
+
+if [[ "$USE_SNOOPY" -eq 1 ]]; then
+  if command -v snoopyctl &>/dev/null; then
+    snoopyctl enable 2>/dev/null || true
+  elif ! grep -q 'libsnoopy' /etc/ld.so.preload 2>/dev/null; then
+    SNOOPY_LIB=$(find /usr/lib* /lib* -name 'libsnoopy.so' 2>/dev/null | head -1)
+    if [[ -n "$SNOOPY_LIB" ]]; then
+      echo "$SNOOPY_LIB" >> /etc/ld.so.preload
+    fi
+  fi
+
+  # Configure snoopy to log to its own file via syslog
+  mkdir -p /etc/snoopy.d 2>/dev/null || true
+  if [[ -f /etc/snoopy.ini ]]; then
+    if ! grep -q 'output.*syslog' /etc/snoopy.ini 2>/dev/null; then
+      cat >> /etc/snoopy.ini << 'SNOOPYCONF'
+
+[snoopy]
+output = syslog
+syslog_facility = LOG_AUTH
+syslog_level = LOG_INFO
+SNOOPYCONF
+    fi
+  fi
+
+  echo "    Snoopy installed and enabled (logging all execve calls)"
+else
+  echo "    Snoopy not available in repos — skipping (auditd still captures execve)"
+fi
+
 echo ""
 echo "==> Done. Audit is configured."
 echo ""
@@ -200,5 +242,10 @@ if [[ "$USE_LAUREL" -eq 1 ]]; then
   echo ""
   echo "Laurel JSON: /var/log/laurel/audit.json"
   echo "  (Used by Promtail for Loki/Grafana)"
+fi
+if [[ "$USE_SNOOPY" -eq 1 ]]; then
+  echo ""
+  echo "Snoopy: /var/log/snoopy.log (or /var/log/auth.log)"
+  echo "  (Full execve capture with arguments)"
 fi
 echo ""

@@ -82,7 +82,7 @@
       "targets": [
         {
           "expr": "sum(rate(node_network_receive_bytes_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))",
-          "legendFormat": "",
+          "legendFormat": "rx total",
           "refId": "A"
         }
       ]
@@ -128,7 +128,7 @@
       "targets": [
         {
           "expr": "sum(rate(node_network_transmit_bytes_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))",
-          "legendFormat": "",
+          "legendFormat": "tx total",
           "refId": "A"
         }
       ]
@@ -178,7 +178,7 @@
       "targets": [
         {
           "expr": "sum(rate(node_network_receive_errs_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))",
-          "legendFormat": "",
+          "legendFormat": "rx errors",
           "refId": "A"
         }
       ]
@@ -228,7 +228,7 @@
       "targets": [
         {
           "expr": "sum(rate(node_network_transmit_errs_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))",
-          "legendFormat": "",
+          "legendFormat": "tx errors",
           "refId": "A"
         }
       ]
@@ -278,7 +278,7 @@
       "targets": [
         {
           "expr": "sum(rate(node_network_receive_drop_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))",
-          "legendFormat": "",
+          "legendFormat": "rx drops",
           "refId": "A"
         }
       ]
@@ -324,7 +324,7 @@
       "targets": [
         {
           "expr": "node_netstat_Tcp_CurrEstab{instance=~\"$node\",job=~\"$job\"}",
-          "legendFormat": "",
+          "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ]
@@ -386,12 +386,12 @@
       "targets": [
         {
           "expr": "rate(node_network_receive_bytes_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} rx",
+          "legendFormat": "{{instance}} {{device}} rx",
           "refId": "A"
         },
         {
           "expr": "-rate(node_network_transmit_bytes_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} tx",
+          "legendFormat": "{{instance}} {{device}} tx",
           "refId": "B"
         }
       ]
@@ -441,12 +441,12 @@
       "targets": [
         {
           "expr": "rate(node_network_receive_packets_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} rx",
+          "legendFormat": "{{instance}} {{device}} rx",
           "refId": "A"
         },
         {
           "expr": "-rate(node_network_transmit_packets_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} tx",
+          "legendFormat": "{{instance}} {{device}} tx",
           "refId": "B"
         }
       ]
@@ -508,12 +508,12 @@
       "targets": [
         {
           "expr": "rate(node_network_receive_errs_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} rx errors",
+          "legendFormat": "{{instance}} {{device}} rx errors",
           "refId": "A"
         },
         {
           "expr": "rate(node_network_transmit_errs_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} tx errors",
+          "legendFormat": "{{instance}} {{device}} tx errors",
           "refId": "B"
         }
       ]
@@ -563,12 +563,12 @@
       "targets": [
         {
           "expr": "rate(node_network_receive_drop_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} rx drops",
+          "legendFormat": "{{instance}} {{device}} rx drops",
           "refId": "A"
         },
         {
           "expr": "rate(node_network_transmit_drop_total{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
-          "legendFormat": "{{{{device}}}} tx drops",
+          "legendFormat": "{{instance}} {{device}} tx drops",
           "refId": "B"
         }
       ]
@@ -618,12 +618,12 @@
       "targets": [
         {
           "expr": "node_network_carrier{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}",
-          "legendFormat": "{{{{device}}}} carrier",
+          "legendFormat": "{{instance}} {{device}} carrier",
           "refId": "A"
         },
         {
           "expr": "node_network_up{instance=~\"$node\",job=~\"$job\",device!~\"lo|veth.*|docker.*|br-.*\"}",
-          "legendFormat": "{{{{device}}}} up",
+          "legendFormat": "{{instance}} {{device}} up",
           "refId": "B"
         }
       ]
@@ -992,7 +992,7 @@
       "targets": [
         {
           "expr": "node_arp_entries{instance=~\"$node\",job=~\"$job\"}",
-          "legendFormat": "{{{{device}}}}",
+          "legendFormat": "{{instance}} {{device}}",
           "refId": "A"
         }
       ]
@@ -1016,7 +1016,7 @@
         "datasource": {"type": "prometheus", "uid": "prometheus"},
         "definition": "label_values(node_uname_info, job)",
         "error": null,
-        "hide": 0,
+        "hide": 2,
         "includeAll": true,
         "label": "Job",
         "multi": false,

@@ -1,974 +1,257 @@
 {
-  "annotations": {
-    "list": []
-  },
-  "description": "Per-user activity tracking \u2014 commands, sessions, files, Docker, model runs. Filter by user to see everything they've done on the server.",
+  "annotations": { "list": [] },
+  "description": "User activity tracking — typed commands, process execution, sessions, files, containers.",
   "editable": true,
-  "gnetId": null,
   "graphTooltip": 1,
   "links": [
-    {
-      "icon": "bolt",
-      "tags": [],
-      "title": "GPU Dashboard",
-      "type": "link",
-      "url": "/d/dcgm-gpu"
-    },
-    {
-      "icon": "bolt",
-      "tags": [],
-      "title": "System Overview",
-      "type": "link",
-      "url": "/d/node-exporter"
-    },
-    {
-      "icon": "bolt",
-      "tags": [],
-      "title": "Network Deep Dive",
-      "type": "link",
-      "url": "/d/network-deep-dive"
-    }
+    { "icon": "bolt", "tags": [], "title": "GPU Dashboard", "type": "link", "url": "/d/dcgm-gpu" },
+    { "icon": "bolt", "tags": [], "title": "System Overview", "type": "link", "url": "/d/node-exporter" },
+    { "icon": "bolt", "tags": [], "title": "Network Deep Dive", "type": "link", "url": "/d/network-deep-dive" }
   ],
   "panels": [
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 100,
-      "panels": [],
-      "title": "User selector",
-      "type": "row"
+      "type": "row", "title": "Summary",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false, "panels": []
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 8,
-        "x": 0,
-        "y": 1
-      },
-      "id": 101,
-      "options": {
-        "content": "## User filter\n\nSelect a user above to focus on their activity. All panels below filter to the selected user.",
-        "mode": "markdown"
-      },
-      "title": "",
-      "type": "text"
+      "type": "stat", "title": "Typed commands",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"} [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 3
-      },
-      "id": 102,
-      "panels": [],
-      "title": "Summary \u2014 this user",
-      "type": "row"
+      "type": "stat", "title": "Process executions",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 0,
-        "y": 4
-      },
-      "id": 1,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Commands executed",
-      "type": "stat"
+      "type": "stat", "title": "Sessions",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"session opened for user|Accepted.*for\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 4,
-        "y": 4
-      },
-      "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"session opened for user|Accepted.*for\" [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Sessions",
-      "type": "stat"
+      "type": "stat", "title": "Privilege escalation",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"sudo|pkexec\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 8,
-        "y": 4
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"sudo|pkexec\" [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Sudo / privilege escalation",
-      "type": "stat"
+      "type": "stat", "title": "Containers",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} |~ \"docker|containerd|nvidia-smi\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 12,
-        "y": 4
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"docker|containerd|nvidia-smi\" [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Docker / container activity",
-      "type": "stat"
+      "type": "stat", "title": "File access",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"path=|key=\" !~ \"/var/log/audit|/var/log/journal|/var/run/utmp|/proc/|cron|auditd|systemd\" [$__range]))", "queryType": "instant", "refId": "A" }]
+    },
+
+    {
+      "type": "row", "title": "Shell History (what was typed)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false, "panels": []
     },
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 16,
-        "y": 4
-      },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"python|python3|torch|tensorflow|jupyter\" [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
+      "type": "logs",
+      "title": "Typed commands (bash + zsh)",
+      "description": "Exact command lines as typed by users, captured via PROMPT_COMMAND / precmd hooks",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"} | regexp `cmd=(?P<cmd>.+)$` | line_format \"{{.instance}} | {{.username}} $ {{.cmd}}\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+
+    {
+      "type": "row", "title": "Process Execution (what actually ran)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "logs",
+      "title": "Snoopy — all executed processes",
+      "description": "Every execve() captured by Snoopy with full arguments",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 17 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"} !~ \"cron|auditd|systemd|promtail|snoopy\" | regexp `\\]:\\s*(?P<cmd>.+)$` | line_format \"{{.instance}} | {{.username}} $ {{.cmd}}\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+    {
+      "type": "logs",
+      "title": "Audit — commands (auditd / Laurel)",
+      "description": "Audit events with command (comm/exe) extracted",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 25 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"comm\" !~ \"cron|auditd|audispd|systemd-journal|laurel\" | regexp `comm[=:]\\\"(?P<command>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | regexp `res[=:](?P<result>\\w+)` | line_format \"{{.instance}} | {{.command}} \u2192 {{.executable}} [{{.result}}]\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+
+    {
+      "type": "row", "title": "Session Timeline",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 33 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "logs",
+      "title": "Logins, logouts, SSH sessions",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 34 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"session opened|session closed|Accepted|Failed\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+
+    {
+      "type": "row", "title": "Privilege Escalation",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "logs",
+      "title": "sudo / pkexec events",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 43 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"sudo|pkexec\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+
+    {
+      "type": "row", "title": "File Access",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 51 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "logs",
+      "title": "File and path events",
+      "description": "Audit events involving file paths, excluding system noise",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 52 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"name=|path=\" !~ \"/var/log/audit|/var/log/journal|/var/run/utmp|/proc/|cron|auditd|systemd\" | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | regexp `name[=:]\\\"(?P<filename>[^\\\"]*)\\\"` | line_format \"{{.instance}} | {{.executable}} \u2192 {{.filename}}\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+
+    {
+      "type": "row", "title": "Container & ML Activity",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 60 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "logs",
+      "title": "Docker / container commands",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 61 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} |~ \"docker|containerd|podman|nvidia-smi\" | regexp `comm[=:]\\\"(?P<command>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | line_format \"{{.instance}} | {{.command}} \u2192 {{.executable}}\"",
+        "queryType": "range", "refId": "A"
+      }]
+    },
+    {
+      "type": "logs",
       "title": "Python / ML runs",
-      "type": "stat"
+      "datasource": {"type": "loki", "uid": "loki"},
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 61 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+      "targets": [{
+        "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
+        "expr": "{job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} |~ \"python|python3|torch|tensorflow|jupyter|pip\" | regexp `comm[=:]\\\"(?P<command>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | line_format \"{{.instance}} | {{.command}} \u2192 {{.executable}}\"",
+        "queryType": "range", "refId": "A"
+      }]
     },
+
     {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 4
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"path=|key=\" [$__range]))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "File access events",
-      "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 103,
-      "panels": [],
-      "title": "Server context (GPU, memory, power \u2014 server-wide)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 0,
-        "y": 9
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "avg(DCGM_FI_DEV_GPU_UTIL)",
-          "refId": "A"
-        }
-      ],
-      "title": "GPU utilization",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "watt"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 4,
-        "y": 9
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "sum(DCGM_FI_DEV_POWER_USAGE)",
-          "refId": "A"
-        }
-      ],
-      "title": "GPU power draw",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 95
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 4,
-        "x": 8,
-        "y": 9
-      },
-      "id": 9,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))",
-          "refId": "A"
-        }
-      ],
-      "title": "Memory used",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 8,
-        "x": 12,
-        "y": 9
-      },
-      "id": 10,
-      "options": {
-        "content": "Per-user GPU/memory/power requires process-level instrumentation (future enhancement).",
-        "mode": "markdown"
-      },
-      "title": "",
-      "type": "text"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 12
-      },
-      "id": 104,
-      "panels": [],
-      "title": "Commands \u2014 every command this user ran",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "id": 11,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": true,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "editorMode": "code",
-          "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"}",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Commands (Laurel JSON)",
-      "type": "logs"
-    },
-    {
+      "type": "row", "title": "Raw Logs",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 69 },
       "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
-      },
-      "id": 105,
-      "title": "Sessions & auth \u2014 logins, sudo, SSH",
-      "type": "row",
       "panels": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 24,
-            "x": 0,
-            "y": 22
-          },
-          "id": 12,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": true,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "editorMode": "code",
-              "expr": "{job=\"auth\", username=~\"$user\", instance=~\"$instance\"}",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Auth log (filtered by user)",
-          "type": "logs"
-        }
-      ]
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 28
-      },
-      "id": 106,
-      "title": "Docker & containers",
-      "type": "row",
-      "panels": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 0,
-            "y": 29
-          },
-          "id": 13,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": true,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "editorMode": "code",
-              "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"docker|containerd|podman|nvidia-smi\"",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Docker / container commands",
-          "type": "logs"
+          "type": "logs", "title": "All audit events (raw)",
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 70 },
+          "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+          "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"}", "queryType": "range", "refId": "A" }]
         },
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 12,
-            "y": 29
-          },
-          "id": 14,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": true,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "editorMode": "code",
-              "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"python|python3|torch|tensorflow|jupyter|pip\"",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Python / ML runs",
-          "type": "logs"
-        }
-      ]
-    },
-    {
-      "collapsed": true,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 35
-      },
-      "id": 107,
-      "title": "File access & raw audit",
-      "type": "row",
-      "panels": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 0,
-            "y": 36
-          },
-          "id": 15,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "editorMode": "code",
-              "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"path=|key=\"",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "File access events",
-          "type": "logs"
+          "type": "logs", "title": "All auth events (raw)",
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 80 },
+          "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+          "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"auth\", username=~\"$user\", instance=~\"$instance\"}", "queryType": "range", "refId": "A" }]
         },
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "gridPos": {
-            "h": 6,
-            "w": 12,
-            "x": 12,
-            "y": 36
-          },
-          "id": 16,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": true,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": true,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "loki"
-              },
-              "editorMode": "code",
-              "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"}",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Raw audit (all events)",
-          "type": "logs"
+          "type": "logs", "title": "All shell history (raw)",
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 90 },
+          "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+          "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"}", "queryType": "range", "refId": "A" }]
+        },
+        {
+          "type": "logs", "title": "All snoopy events (raw)",
+          "datasource": {"type": "loki", "uid": "loki"},
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 100 },
+          "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
+          "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"}", "queryType": "range", "refId": "A" }]
         }
       ]
     }
   ],
   "refresh": "30m",
   "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "audit",
-    "guilty-spark",
-    "user-activity"
-  ],
+  "tags": ["audit", "guilty-spark", "user-activity"],
   "templating": {
     "list": [
       {
         "allValue": ".*",
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
+        "current": { "selected": true, "text": "All", "value": "$__all" },
         "datasource": {"type": "loki", "uid": "loki"},
-        "definition": "label_values({job=~\"audit|audit_raw|auth\"}, instance)",
+        "definition": "label_values({job=~\"audit|audit_raw|auth|shell_history|snoopy\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Server",
         "multi": true,
         "name": "instance",
         "options": [],
-        "query": "label_values({job=~\"audit|audit_raw|auth\"}, instance)",
+        "query": "label_values({job=~\"audit|audit_raw|auth|shell_history|snoopy\"}, instance)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -977,20 +260,16 @@
       },
       {
         "allValue": ".*",
-        "current": {
-          "selected": true,
-          "text": "All",
-          "value": "$__all"
-        },
+        "current": { "selected": true, "text": "All", "value": "$__all" },
         "datasource": {"type": "loki", "uid": "loki"},
-        "definition": "label_values({job=~\"audit|audit_raw|auth\"}, username)",
+        "definition": "label_values({job=~\"audit|audit_raw|auth|shell_history|snoopy\"}, username)",
         "hide": 0,
         "includeAll": true,
         "label": "User",
         "multi": false,
         "name": "user",
         "options": [],
-        "query": "label_values({job=~\"audit|audit_raw|auth\"}, username)",
+        "query": "label_values({job=~\"audit|audit_raw|auth|shell_history|snoopy\"}, username)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -999,20 +278,9 @@
       }
     ]
   },
-  "time": {
-    "from": "now-24h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "30m",
-      "1h",
-      "6h",
-      "12h",
-      "1d"
-    ]
-  },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["30m", "1h", "6h", "12h", "1d"] },
   "title": "User Activity \u2014 Audit",
   "uid": "audit-activity",
-  "version": 2
+  "version": 1
 }

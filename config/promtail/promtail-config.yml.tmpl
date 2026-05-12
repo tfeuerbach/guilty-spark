@@ -88,3 +88,31 @@ scrape_configs:
           expression: '(?:session opened for user |Accepted \S+ for |sudo:\s+)(?P<username>\w+)'
       - labels:
           username: username
+  # Shell history — exact typed commands (bash PROMPT_COMMAND + zsh precmd)
+  - job_name: shell_history
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: shell_history
+          instance: ${INSTANCE_NAME}
+          __path__: /var/log/shell-history.log
+    pipeline_stages:
+      - regex:
+          expression: 'user=(?P<username>\S+)\s+tty=\S+\s+cmd=(?P<cmd>.+)$'
+      - labels:
+          username: username
+  # Snoopy Logger — full execve capture with arguments
+  - job_name: snoopy
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: snoopy
+          instance: ${INSTANCE_NAME}
+          __path__: /var/log/snoopy.log
+    pipeline_stages:
+      - regex:
+          expression: '\[uid:(?P<uid>\d+)\s+.*?username:(?P<username>\w+).*?\]:\s*(?P<cmd>.+)$'
+      - labels:
+          username: username
