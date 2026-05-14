@@ -49,6 +49,38 @@ services:
     networks:
       - monitoring
 
+  process-exporter:
+    image: ncabatoff/process-exporter:0.8.6
+    container_name: guilty-spark-process-exporter
+    restart: unless-stopped
+    privileged: true
+    command:
+      - '--procfs=/host/proc'
+      - '--config.path=/config/process-exporter.yml'
+    volumes:
+      - /proc:/host/proc:ro
+      - ./config/process-exporter/process-exporter.yml:/config/process-exporter.yml:ro
+    ports:
+      - "9256:9256"
+    networks:
+      - monitoring
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    container_name: guilty-spark-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+
   promtail:
     image: grafana/promtail:3.6.8
     container_name: guilty-spark-promtail

@@ -19,7 +19,7 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"} [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
@@ -27,7 +27,7 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
@@ -35,7 +35,7 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"session opened for user|Accepted.*for\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
@@ -43,7 +43,7 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", username=~\"$user\", instance=~\"$instance\"} |~ \"sudo|pkexec\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
@@ -51,7 +51,7 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw|snoopy\", username=~\"$user\", instance=~\"$instance\"} |~ \"docker|containerd|nvidia-smi\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
@@ -59,8 +59,8 @@
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value_and_name" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"path=|key=\" !~ \"/var/log/audit|/var/log/journal|/var/run/utmp|/proc/|cron|auditd|systemd\" [$__range]))", "queryType": "instant", "refId": "A" }]
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"file_access\" !~ \"cron|auditd|systemd|guilty-spark|/var/log|/var/run|/proc|/usr/lib|/dev/|/sys/\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
 
     {
@@ -77,7 +77,7 @@
       "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
       "targets": [{
         "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
-        "expr": "{job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"} | regexp `cmd=(?P<cmd>.+)$` | line_format \"{{.instance}} | {{.username}} $ {{.cmd}}\"",
+        "expr": "{job=\"shell_history\", username=~\"$user\", instance=~\"$instance\"} | regexp `cmd=(?P<cmd>.+)$` | line_format \"{{.username}} on {{.instance}} ran '{{.cmd}}'\"",
         "queryType": "range", "refId": "A"
       }]
     },
@@ -96,7 +96,7 @@
       "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
       "targets": [{
         "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
-        "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"} !~ \"cron|auditd|systemd|promtail|snoopy\" | regexp `\\]:\\s*(?P<cmd>.+)$` | line_format \"{{.instance}} | {{.username}} $ {{.cmd}}\"",
+        "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"} !~ \"cron|auditd|systemd|promtail|guilty-spark\" | regexp `\\]:\\s*(?P<cmd>.+)$` | cmd !~ \"^(logger|tty|whoami|sed|basename) \" | line_format \"{{.username}} ran {{.cmd}} on {{.instance}}\"",
         "queryType": "range", "refId": "A"
       }]
     },
@@ -109,7 +109,7 @@
       "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
       "targets": [{
         "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
-        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"comm\" !~ \"cron|auditd|audispd|systemd-journal|laurel\" | regexp `comm[=:]\\\"(?P<command>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | regexp `res[=:](?P<result>\\w+)` | line_format \"{{.instance}} | {{.command}} \u2192 {{.executable}} [{{.result}}]\"",
+        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"comm\" !~ \"cron|auditd|audispd|systemd-journal|laurel|guilty-spark\" | regexp `comm[=:]\\\"(?P<command>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | regexp `res[=:](?P<result>\\w+)` | command !~ \"^(logger|tty|whoami|sed|basename)$\" | line_format \"{{.username}} on {{.instance}} executed {{.command}} ({{.executable}})\"",
         "queryType": "range", "refId": "A"
       }]
     },
@@ -164,7 +164,7 @@
       "options": { "dedupStrategy": "none", "enableLogDetails": true, "prettifyLogMessage": false, "showCommonLabels": false, "showLabels": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
       "targets": [{
         "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code",
-        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"name=|path=\" !~ \"/var/log/audit|/var/log/journal|/var/run/utmp|/proc/|cron|auditd|systemd\" | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | regexp `name[=:]\\\"(?P<filename>[^\\\"]*)\\\"` | line_format \"{{.instance}} | {{.executable}} \u2192 {{.filename}}\"",
+        "expr": "{job=~\"audit|audit_raw\", username=~\"$user\", instance=~\"$instance\"} |~ \"file_access\" !~ \"cron|auditd|systemd|guilty-spark\" | regexp `name[=:]\\\"(?P<filename>[^\\\"]*)\\\"` | regexp `exe[=:]\\\"(?P<executable>[^\\\"]*)\\\"` | filename !~ \"/var/log|/var/run|/proc|/usr/lib|/etc/ld|/dev/|/sys/|locale|libc|libm|libdl|libpthread|ld-linux\" | filename != \"\" | filename != \".\" | line_format \"{{.username}} on {{.instance}} opened '{{.filename}}' via {{.executable}}\"",
         "queryType": "range", "refId": "A"
       }]
     },
@@ -235,7 +235,7 @@
       ]
     }
   ],
-  "refresh": "30m",
+  "refresh": "10s",
   "schemaVersion": 38,
   "tags": ["audit", "guilty-spark", "user-activity"],
   "templating": {
@@ -278,8 +278,8 @@
       }
     ]
   },
-  "time": { "from": "now-24h", "to": "now" },
-  "timepicker": { "refresh_intervals": ["30m", "1h", "6h", "12h", "1d"] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"] },
   "title": "User Activity \u2014 Audit",
   "uid": "audit-activity",
   "version": 1

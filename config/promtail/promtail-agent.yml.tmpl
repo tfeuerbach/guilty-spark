@@ -110,6 +110,6 @@ scrape_configs:
           __path__: /var/log/snoopy.log
     pipeline_stages:
       - regex:
-          expression: '\[uid:(?P<uid>\d+)\s+.*?username:(?P<username>\w+).*?\]:\s*(?P<cmd>.+)$'
+          expression: '\[login:(?P<username>\w+).*?\]:\s*(?P<cmd>.+)$'
       - labels:
           username: username

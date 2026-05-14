@@ -1,0 +1,110 @@
+{
+  "annotations": { "list": [] },
+  "description": "Inventory of listening services across the fleet — ports, processes, and per-user disk usage.",
+  "editable": true,
+  "graphTooltip": 1,
+  "links": [
+    { "icon": "bolt", "tags": [], "title": "System Overview", "type": "link", "url": "/d/node-exporter" },
+    { "icon": "bolt", "tags": [], "title": "Containers", "type": "link", "url": "/d/containers" },
+    { "icon": "bolt", "tags": [], "title": "Security", "type": "link", "url": "/d/security-overview" }
+  ],
+  "panels": [
+    {
+      "type": "row", "title": "Listening Services",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "stat", "title": "Total Open Ports",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 20}, {"color": "red", "value": 50}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "count(guilty_spark_listening_port{instance=~\"$instance\"})", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Servers Reporting",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "count(count by (instance) (guilty_spark_listening_port{instance=~\"$instance\"}))", "refId": "A" }]
+    },
+    {
+      "type": "table",
+      "title": "All Listening Ports",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "custom": {"align": "auto"} }, "overrides": [] },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 5 },
+      "options": { "showHeader": true, "sortBy": [{"displayName": "Port", "desc": false}] },
+      "targets": [{ "expr": "guilty_spark_listening_port{instance=~\"$instance\"}", "format": "table", "instant": true, "refId": "A" }],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "job": true, "Value": true}, "renameByName": {"instance": "Server", "port": "Port", "process": "Process"}}}
+      ]
+    },
+
+    {
+      "type": "row", "title": "Storage by User",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "bargauge",
+      "title": "Disk Usage per User",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 10737418240}, {"color": "red", "value": 107374182400}]} }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true },
+      "targets": [{ "expr": "guilty_spark_user_disk_bytes{instance=~\"$instance\"}", "legendFormat": "{{instance}} / {{username}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Usage Trend per User",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 1, "fillOpacity": 10, "stacking": {"mode": "none"}, "showPoints": "never"} }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "options": { "legend": {"displayMode": "table", "placement": "right", "calcs": ["lastNotNull"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
+      "targets": [{ "expr": "guilty_spark_user_disk_bytes{instance=~\"$instance\"}", "legendFormat": "{{instance}} / {{username}}", "refId": "A" }]
+    },
+    {
+      "type": "table",
+      "title": "User Disk Usage (All Servers)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "custom": {"align": "auto"}, "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "options": { "showHeader": true, "sortBy": [{"displayName": "Value", "desc": true}] },
+      "targets": [{ "expr": "guilty_spark_user_disk_bytes{instance=~\"$instance\"}", "format": "table", "instant": true, "refId": "A" }],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "job": true}, "renameByName": {"instance": "Server", "username": "User", "Value": "Disk Used"}}}
+      ]
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 38,
+  "tags": ["services", "storage", "guilty-spark"],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "definition": "label_values(guilty_spark_listening_port, instance)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Server",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": "label_values(guilty_spark_listening_port, instance)",
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["1m", "5m", "15m"] },
+  "title": "Services & Storage",
+  "uid": "services-storage",
+  "version": 1
+}

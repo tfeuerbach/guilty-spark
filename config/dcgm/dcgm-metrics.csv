@@ -24,5 +24,18 @@ DCGM_FI_DEV_FB_FREE, gauge, Framebuffer memory free (in MiB).
 DCGM_FI_DEV_FB_USED, gauge, Framebuffer memory used (in MiB).
 DCGM_FI_DEV_FB_RESERVED, gauge, Framebuffer memory reserved (in MiB).
 
+# Profiling (requires datacenter GPUs or driver 530+)
+DCGM_FI_PROF_GR_ENGINE_ACTIVE, gauge, Ratio of time the graphics engine is active (0.0-1.0).
+DCGM_FI_PROF_SM_ACTIVE, gauge, Ratio of time at least one warp is active on an SM (0.0-1.0).
+DCGM_FI_PROF_SM_OCCUPANCY, gauge, Ratio of warps resident vs theoretical maximum.
+DCGM_FI_PROF_PIPE_TENSOR_ACTIVE, gauge, Ratio of cycles the tensor cores are active.
+DCGM_FI_PROF_PIPE_FP64_ACTIVE, gauge, Ratio of cycles the FP64 pipes are active.
+DCGM_FI_PROF_PIPE_FP32_ACTIVE, gauge, Ratio of cycles the FP32 pipes are active.
+DCGM_FI_PROF_DRAM_ACTIVE, gauge, Ratio of cycles DRAM interface is sending/receiving data.
+DCGM_FI_PROF_PCIE_TX_BYTES, counter, PCIe TX bytes (total).
+DCGM_FI_PROF_PCIE_RX_BYTES, counter, PCIe RX bytes (total).
+DCGM_FI_PROF_NVLINK_TX_BYTES, counter, NVLink TX bytes (total).
+DCGM_FI_PROF_NVLINK_RX_BYTES, counter, NVLink RX bytes (total).
+
 # Errors (optional, may not exist on all GPUs)
 DCGM_FI_DEV_XID_ERRORS, gauge, Value of the last XID error encountered.

@@ -121,11 +121,17 @@ if [[ "$STIG" -eq 1 ]] && [[ -f "$RULES_SRC/30-stig.rules" ]]; then
 fi
 
 cat > /etc/audit/rules.d/99-guilty-spark.rules << 'RULES'
-# Guilty Spark — Full command tracking (every execve)
+# Guilty Spark — Full command + file access tracking
 
 # Execve: every command executed by users (auid>=1000)
 -a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k exec
 -a always,exit -F arch=b32 -S execve -F auid>=1000 -F auid!=unset -k exec
+
+# File access: open/openat by real users, successful only
+-a always,exit -F arch=b64 -S openat -F auid>=1000 -F auid!=unset -F exit>=0 -k file_access
+-a always,exit -F arch=b32 -S openat -F auid>=1000 -F auid!=unset -F exit>=0 -k file_access
+-a always,exit -F arch=b64 -S open -F auid>=1000 -F auid!=unset -F exit>=0 -k file_access
+-a always,exit -F arch=b32 -S open -F auid>=1000 -F auid!=unset -F exit>=0 -k file_access
 
 # Login/logout (watch files)
 -w /var/log/tallylog -p wa -k logins

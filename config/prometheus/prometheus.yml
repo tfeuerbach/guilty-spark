@@ -29,3 +29,25 @@ scrape_configs:
         target_label: instance
       - regex: agent_name
         action: labeldrop
+
+  - job_name: 'cadvisor'
+    file_sd_configs:
+      - files:
+          - '/etc/prometheus/targets/cadvisor.json'
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [agent_name]
+        target_label: instance
+      - regex: agent_name
+        action: labeldrop
+
+  - job_name: 'process'
+    file_sd_configs:
+      - files:
+          - '/etc/prometheus/targets/process.json'
+        refresh_interval: 30s
+    relabel_configs:
+      - source_labels: [agent_name]
+        target_label: instance
+      - regex: agent_name
+        action: labeldrop

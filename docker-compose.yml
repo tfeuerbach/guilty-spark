@@ -94,6 +94,34 @@ services:
     depends_on:
       - loki
 
+  process-exporter:
+    image: ncabatoff/process-exporter:0.8.6
+    container_name: guilty-spark-process-exporter
+    restart: unless-stopped
+    privileged: true
+    command:
+      - '--procfs=/host/proc'
+      - '--config.path=/config/process-exporter.yml'
+    volumes:
+      - /proc:/host/proc:ro
+      - ./config/process-exporter/process-exporter.yml:/config/process-exporter.yml:ro
+    networks:
+      - monitoring
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    container_name: guilty-spark-cadvisor
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+
   grafana:
     image: grafana/grafana:12.3.6-security-01
     container_name: guilty-spark-grafana

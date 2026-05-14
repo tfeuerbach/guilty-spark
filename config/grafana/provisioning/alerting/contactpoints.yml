@@ -1,0 +1,10 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: guilty-spark-default
+    receivers:
+      - uid: gs-email
+        type: email
+        settings:
+          addresses: admin@localhost
+        disableResolveMessage: false

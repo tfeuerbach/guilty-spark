@@ -238,9 +238,13 @@ echo "    Enabled guilty-spark-userwatch.service (real-time user detection)"
 cat > /etc/cron.d/guilty-spark << CRONEOF
 # Guilty Spark — regenerate user metrics (backup for inotify)
 */5 * * * * root ${REPO_ROOT}/scripts/generate-user-metrics.sh
+# Guilty Spark — per-user disk usage metrics (every 15 min)
+*/15 * * * * root ${REPO_ROOT}/scripts/generate-disk-metrics.sh
+# Guilty Spark — listening services inventory (every 5 min)
+*/5 * * * * root ${REPO_ROOT}/scripts/generate-service-metrics.sh
 CRONEOF
 chmod 644 /etc/cron.d/guilty-spark
-echo "    Installed /etc/cron.d/guilty-spark (every 5 min fallback)"
+echo "    Installed /etc/cron.d/guilty-spark (user metrics + disk + services)"
 echo ""
 
 # ─── Step 5: Prometheus targets (central only) ───

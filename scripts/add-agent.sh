@@ -45,6 +45,8 @@ fi
 
 GPU_TARGETS="$REPO_ROOT/config/prometheus/targets/gpu.json"
 NODE_TARGETS="$REPO_ROOT/config/prometheus/targets/node.json"
+CADVISOR_TARGETS="$REPO_ROOT/config/prometheus/targets/cadvisor.json"
+PROCESS_TARGETS="$REPO_ROOT/config/prometheus/targets/process.json"
 
 add_target() {
     local file="$1" port="$2"
@@ -79,6 +81,8 @@ else
     echo "Skipping GPU target (--no-gpu)"
 fi
 add_target "$NODE_TARGETS" 9100
+add_target "$CADVISOR_TARGETS" 8080
+add_target "$PROCESS_TARGETS" 9256
 
 echo ""
 echo "Agent '${NAME}' registered at ${IP}"

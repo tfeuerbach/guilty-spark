@@ -42,7 +42,7 @@
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "repeat": "node",
       "repeatDirection": "h",
-      "maxPerRow": 6,
+      "maxPerRow": 4,
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -60,7 +60,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 1 },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 1 },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "showThresholdLabels": false,
@@ -78,7 +78,7 @@
     {
       "type": "row",
       "title": "Memory",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
       "collapsed": false,
       "panels": []
     },
@@ -88,7 +88,7 @@
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "repeat": "node",
       "repeatDirection": "h",
-      "maxPerRow": 6,
+      "maxPerRow": 4,
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -106,7 +106,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 8 },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 9 },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "showThresholdLabels": false,
@@ -124,7 +124,7 @@
     {
       "type": "row",
       "title": "Disk",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
       "collapsed": false,
       "panels": []
     },
@@ -134,7 +134,7 @@
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "repeat": "node",
       "repeatDirection": "h",
-      "maxPerRow": 6,
+      "maxPerRow": 4,
       "fieldConfig": {
         "defaults": {
           "thresholds": {
@@ -152,7 +152,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 15 },
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 17 },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "showThresholdLabels": false,
@@ -170,7 +170,7 @@
     {
       "type": "row",
       "title": "Uptime & Hardware",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
       "collapsed": false,
       "panels": []
     },
@@ -181,7 +181,7 @@
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "repeat": "node",
       "repeatDirection": "h",
-      "maxPerRow": 6,
+      "maxPerRow": 4,
       "fieldConfig": {
         "defaults": {
           "unit": "dtdurations",
@@ -202,12 +202,13 @@
           }
         ]
       },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 22 },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 25 },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "colorMode": "value",
         "graphMode": "none",
-        "textMode": "auto"
+        "textMode": "value_and_name",
+        "orientation": "horizontal"
       },
       "targets": [
         {
@@ -230,7 +231,7 @@
     {
       "type": "row",
       "title": "Utilization Over Time",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
       "collapsed": false,
       "panels": []
     },
@@ -254,7 +255,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -287,7 +288,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -335,7 +336,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -373,7 +374,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -394,7 +395,7 @@
     {
       "type": "row",
       "title": "System Load",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
       "collapsed": false,
       "panels": []
     },
@@ -418,7 +419,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
@@ -461,7 +462,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
         "tooltip": { "mode": "multi", "sort": "desc" }
