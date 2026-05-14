@@ -95,7 +95,7 @@ services:
       - loki
 
   process-exporter:
-    image: ncabatoff/process-exporter:0.8.6
+    image: ncabatoff/process-exporter:0.8.7
     container_name: guilty-spark-process-exporter
     restart: unless-stopped
     privileged: true
@@ -109,7 +109,7 @@ services:
       - monitoring
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    image: gcr.io/cadvisor/cadvisor:v0.49.2
     container_name: guilty-spark-cadvisor
     restart: unless-stopped
     privileged: true
