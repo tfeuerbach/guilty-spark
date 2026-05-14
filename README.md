@@ -1,9 +1,13 @@
-# Guilty Spark — GPU Server Monitoring
+<p align="center">
+  <img src="assets/guilty-spark-light.png" alt="Guilty Spark" width="400">
+</p>
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Prometheus](https://img.shields.io/badge/Prometheus-v3.10-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
-[![Grafana](https://img.shields.io/badge/Grafana-12.3-F46800?logo=grafana&logoColor=white)](https://grafana.com)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+<p align="center">
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
+  <a href="https://prometheus.io"><img src="https://img.shields.io/badge/Prometheus-v3.10-E6522C?logo=prometheus&logoColor=white" alt="Prometheus"></a>
+  <a href="https://grafana.com"><img src="https://img.shields.io/badge/Grafana-12.3-F46800?logo=grafana&logoColor=white" alt="Grafana"></a>
+  <a href="https://docs.docker.com/compose/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
+</p>
 
 Multi-server monitoring stack for GPU compute environments. Deploys Prometheus, Grafana, Loki, DCGM Exporter, and Node Exporter with one-command setup. Includes real-time user activity auditing with automatic UID-to-username resolution.
 

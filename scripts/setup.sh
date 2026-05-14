@@ -262,7 +262,7 @@ name = '${INSTANCE_NAME}'
 ip = '${SYSTEM_IP}'
 has_gpu = ${HAS_GPU}
 
-entries = [('node.json', '9100', 'node-exporter')]
+entries = [('node.json', '9100', 'node-exporter'), ('cadvisor.json', '8080', 'cadvisor'), ('process.json', '9256', 'process-exporter')]
 if has_gpu:
     entries.append(('gpu.json', '9400', 'dcgm-exporter'))
 
@@ -275,8 +275,8 @@ for fname, port, container in entries:
                 existing = json.load(f)
             except json.JSONDecodeError:
                 existing = []
-    # Remove any previous local entry (target contains container name)
-    existing = [t for t in existing if not any('exporter:' in addr for addr in t.get('targets', []))]
+    # Remove any previous local entry (target contains container name or localhost)
+    existing = [t for t in existing if not any(container in addr or 'localhost' in addr for addr in t.get('targets', []))]
     local_entry = {
         'targets': [f'{container}:{port}'],
         'labels': {'agent_name': name, 'agent_ip': ip}

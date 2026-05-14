@@ -1,6 +1,6 @@
 {
   "annotations": { "list": [] },
-  "description": "Resource usage accounting and estimated costs — GPU-hours, CPU-hours, storage, and network by user/container.",
+  "description": "Resource usage accounting and estimated costs. Adjust rate variables in the dropdowns to match your pricing.",
   "editable": true,
   "graphTooltip": 1,
   "links": [
@@ -10,62 +10,104 @@
   ],
   "panels": [
     {
-      "type": "row", "title": "Cost Summary",
+      "type": "row", "title": "Estimated Costs (adjust rates in variables above)",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "collapsed": false, "panels": []
     },
     {
-      "type": "stat", "title": "GPU-Hours (period)",
+      "type": "stat", "title": "GPU Cost",
+      "description": "GPU-hours * GPU $/hr rate",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "h", "decimals": 1 }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 100}, {"color": "red", "value": 500}]}, "unit": "currencyUSD", "decimals": 2, "noValue": "0.00" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600)", "refId": "A" }]
+      "targets": [{ "expr": "(sum(avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600) * $gpu_rate) or vector(0)", "refId": "A" }]
     },
     {
-      "type": "stat", "title": "Est. GPU Cost",
+      "type": "stat", "title": "Electricity Cost",
+      "description": "Total energy consumed * $/kWh rate",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD", "decimals": 2 }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 50}, {"color": "red", "value": 200}]}, "unit": "currencyUSD", "decimals": 2, "noValue": "0.00" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600) * $gpu_rate", "refId": "A" }]
+      "targets": [{ "expr": "(sum(increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION{instance=~\"$instance\"}[$__range])) / 3600000000 * $kwh_rate) or vector(0)", "refId": "A" }]
     },
     {
-      "type": "stat", "title": "Total Energy Cost",
+      "type": "stat", "title": "Storage Cost",
+      "description": "Total user storage * $/GB/month rate",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD", "decimals": 2 }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 20}, {"color": "red", "value": 100}]}, "unit": "currencyUSD", "decimals": 2, "noValue": "0.00" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION{instance=~\"$instance\"}[$__range])) / 3600000000 * $kwh_rate", "refId": "A" }]
+      "targets": [{ "expr": "(sum(guilty_spark_user_disk_bytes{instance=~\"$instance\"}) / 1073741824 * $storage_rate) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Network Cost",
+      "description": "Total egress * $/GB rate",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 10}, {"color": "red", "value": 50}]}, "unit": "currencyUSD", "decimals": 2, "noValue": "0.00" }, "overrides": [] },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "(sum(increase(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__range])) / 1073741824 * $network_rate) or vector(0)", "refId": "A" }]
+    },
+
+    {
+      "type": "row", "title": "Resource Usage (raw quantities)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "collapsed": false, "panels": []
+    },
+    {
+      "type": "stat", "title": "GPU-Hours",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "h", "decimals": 1, "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 7 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "(sum(avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600)) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Energy Used",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "kwatth", "decimals": 2, "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 7 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "(sum(increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION{instance=~\"$instance\"}[$__range])) / 3600000000) or vector(0)", "refId": "A" }]
+    },
+    {
+      "type": "stat", "title": "Storage Used",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes", "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 7 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "(sum(guilty_spark_user_disk_bytes{instance=~\"$instance\"})) or vector(0)", "refId": "A" }]
     },
     {
       "type": "stat", "title": "Network Egress",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(increase(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__range]))", "refId": "A" }]
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes", "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 7 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
+      "targets": [{ "expr": "(sum(increase(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__range]))) or vector(0)", "refId": "A" }]
     },
     {
-      "type": "stat", "title": "Total Storage Used",
+      "type": "stat", "title": "CPU-Hours (all cores)",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "h", "decimals": 1, "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 7 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(guilty_spark_user_disk_bytes{instance=~\"$instance\"})", "refId": "A" }]
+      "targets": [{ "expr": "(sum(increase(node_cpu_seconds_total{instance=~\"$instance\", mode!=\"idle\"}[$__range])) / 3600) or vector(0)", "refId": "A" }]
     },
     {
-      "type": "stat", "title": "Est. Storage Cost",
+      "type": "stat", "title": "Containers Running",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD", "decimals": 2 }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short", "noValue": "0" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 7 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "expr": "sum(guilty_spark_user_disk_bytes{instance=~\"$instance\"}) / 1073741824 * $storage_rate", "refId": "A" }]
+      "targets": [{ "expr": "(count(container_last_seen{instance=~\"$instance\", name=~\".+\", name!~\".*POD.*\"})) or vector(0)", "refId": "A" }]
     },
 
     {
-      "type": "row", "title": "GPU Usage Breakdown",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "type": "row", "title": "Breakdown by Server",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
       "collapsed": false, "panels": []
     },
     {
@@ -73,95 +115,36 @@
       "title": "GPU Utilization by Server",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": { "defaults": { "unit": "percent", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 20, "stacking": {"mode": "none"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 12 },
       "options": { "legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
       "targets": [{ "expr": "avg by (instance) (DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"})", "legendFormat": "{{instance}}", "refId": "A" }]
     },
     {
-      "type": "bargauge",
-      "title": "GPU-Hours by Server (period)",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "unit": "h", "decimals": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
-      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true },
-      "targets": [{ "expr": "sum by (instance) (avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600)", "legendFormat": "{{instance}}", "refId": "A" }]
-    },
-
-    {
-      "type": "row", "title": "CPU & Process Usage",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
-      "collapsed": false, "panels": []
-    },
-    {
       "type": "timeseries",
-      "title": "Top Processes by CPU",
+      "title": "CPU Usage by Server",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "unit": "percent", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 1, "fillOpacity": 20, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
-      "options": { "legend": {"displayMode": "table", "placement": "right", "calcs": ["mean"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "expr": "topk(10, sum by (groupname, instance) (rate(namedprocess_namegroup_cpu_seconds_total{instance=~\"$instance\"}[5m])) * 100)", "legendFormat": "{{instance}} / {{groupname}}", "refId": "A" }]
-    },
-    {
-      "type": "timeseries",
-      "title": "Top Processes by Memory",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "unit": "bytes", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 1, "fillOpacity": 20, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
-      "options": { "legend": {"displayMode": "table", "placement": "right", "calcs": ["mean"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "expr": "topk(10, sum by (groupname, instance) (namedprocess_namegroup_memory_bytes{instance=~\"$instance\", memtype=\"resident\"}))", "legendFormat": "{{instance}} / {{groupname}}", "refId": "A" }]
-    },
-
-    {
-      "type": "row", "title": "Network Usage",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
-      "collapsed": false, "panels": []
+      "fieldConfig": { "defaults": { "unit": "percent", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 20, "stacking": {"mode": "none"}, "showPoints": "never"} }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 12 },
+      "options": { "legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
+      "targets": [{ "expr": "(1 - avg by (instance) (rate(node_cpu_seconds_total{instance=~\"$instance\", mode=\"idle\"}[5m]))) * 100", "legendFormat": "{{instance}}", "refId": "A" }]
     },
     {
       "type": "timeseries",
       "title": "Network Egress by Server",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": { "defaults": { "unit": "Bps", "custom": {"drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "fillOpacity": 15, "stacking": {"mode": "none"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 19 },
       "options": { "legend": {"displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"]}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))", "legendFormat": "{{instance}} TX", "refId": "A" }]
+      "targets": [{ "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[5m]))", "legendFormat": "{{instance}}", "refId": "A" }]
     },
     {
       "type": "bargauge",
-      "title": "Total Egress by Server (period)",
+      "title": "Storage per User",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
-      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true },
-      "targets": [{ "expr": "sum by (instance) (increase(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__range]))", "legendFormat": "{{instance}}", "refId": "A" }]
-    },
-
-    {
-      "type": "row", "title": "Storage Accounting",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
-      "collapsed": false, "panels": []
-    },
-    {
-      "type": "bargauge",
-      "title": "Disk Usage per User",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]} }, "overrides": [] },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+      "fieldConfig": { "defaults": { "color": {"mode": "palette-classic"}, "unit": "bytes", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "noValue": "No data yet — run generate-disk-metrics.sh" }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 19 },
       "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true },
       "targets": [{ "expr": "guilty_spark_user_disk_bytes{instance=~\"$instance\"}", "legendFormat": "{{instance}} / {{username}}", "refId": "A" }]
-    },
-    {
-      "type": "table",
-      "title": "Chargeback Summary",
-      "description": "Estimated costs per server for the selected time range. Adjust rate variables above to match your pricing.",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": { "defaults": { "custom": {"align": "auto"} }, "overrides": [{"matcher": {"id": "byName", "options": "GPU-Hours"}, "properties": [{"id": "unit", "value": "h"}, {"id": "decimals", "value": 1}]}, {"matcher": {"id": "byName", "options": "Storage"}, "properties": [{"id": "unit", "value": "bytes"}]}, {"matcher": {"id": "byName", "options": "Egress"}, "properties": [{"id": "unit", "value": "bytes"}]}] },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
-      "options": { "showHeader": true, "sortBy": [{"displayName": "GPU-Hours", "desc": true}] },
-      "targets": [
-        { "expr": "sum by (instance) (avg_over_time(DCGM_FI_DEV_GPU_UTIL{instance=~\"$instance\"}[$__range]) / 100) * ($__range_s / 3600)", "legendFormat": "GPU-Hours", "format": "table", "instant": true, "refId": "A" },
-        { "expr": "sum by (instance) (guilty_spark_user_disk_bytes{instance=~\"$instance\"})", "legendFormat": "Storage", "format": "table", "instant": true, "refId": "B" },
-        { "expr": "sum by (instance) (increase(node_network_transmit_bytes_total{instance=~\"$instance\", device!~\"lo|veth.*|docker.*|br-.*\"}[$__range]))", "legendFormat": "Egress", "format": "table", "instant": true, "refId": "C" }
-      ]
     }
   ],
   "refresh": "5m",
@@ -190,32 +173,41 @@
         "hide": 0,
         "label": "GPU $/hr",
         "name": "gpu_rate",
-        "options": [{"selected": true, "text": "2.50", "value": "2.50"}],
+        "options": [{ "selected": true, "text": "2.50", "value": "2.50" }],
         "query": "2.50",
-        "type": "custom"
+        "type": "textbox"
       },
       {
         "current": { "selected": false, "text": "0.12", "value": "0.12" },
         "hide": 0,
         "label": "Electricity $/kWh",
         "name": "kwh_rate",
-        "options": [{"selected": true, "text": "0.12", "value": "0.12"}],
+        "options": [{ "selected": true, "text": "0.12", "value": "0.12" }],
         "query": "0.12",
-        "type": "custom"
+        "type": "textbox"
       },
       {
         "current": { "selected": false, "text": "0.05", "value": "0.05" },
         "hide": 0,
         "label": "Storage $/GB/mo",
         "name": "storage_rate",
-        "options": [{"selected": true, "text": "0.05", "value": "0.05"}],
+        "options": [{ "selected": true, "text": "0.05", "value": "0.05" }],
         "query": "0.05",
-        "type": "custom"
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": false, "text": "0.09", "value": "0.09" },
+        "hide": 0,
+        "label": "Network $/GB",
+        "name": "network_rate",
+        "options": [{ "selected": true, "text": "0.09", "value": "0.09" }],
+        "query": "0.09",
+        "type": "textbox"
       }
     ]
   },
-  "time": { "from": "now-7d", "to": "now" },
-  "timepicker": { "refresh_intervals": ["5m", "15m", "30m", "1h"] },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": { "refresh_intervals": ["1m", "5m", "15m", "30m"] },
   "title": "Usage & Chargeback",
   "uid": "chargeback",
   "version": 1

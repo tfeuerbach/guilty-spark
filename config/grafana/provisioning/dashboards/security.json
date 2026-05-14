@@ -38,12 +38,12 @@
       "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"sudo\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
-      "type": "stat", "title": "Active sessions",
+      "type": "stat", "title": "SSH logins",
       "datasource": {"type": "loki", "uid": "loki"},
       "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}]}, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
       "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"session opened\" [$__range]))", "queryType": "instant", "refId": "A" }]
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [$__range]))", "queryType": "instant", "refId": "A" }]
     },
     {
       "type": "timeseries",
@@ -97,36 +97,38 @@
     },
 
     {
-      "type": "row", "title": "Suspicious Activity",
+      "type": "row", "title": "Sensitive Access & User Activity",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
       "collapsed": false, "panels": []
-    },
-    {
-      "type": "logs",
-      "title": "Crypto Miners & Reverse Shells",
-      "description": "Detects known crypto mining binaries, reverse shell patterns, and suspicious network tools",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 29 },
-      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=~\"snoopy|shell_history|audit|audit_raw\", instance=~\"$instance\"} |~ \"xmrig|minerd|cryptonight|stratum|nc -e|ncat -e|bash -i|/dev/tcp|mkfifo|socat\"", "refId": "A" }]
     },
     {
       "type": "logs",
       "title": "Sensitive File Access",
       "description": "Access to /etc/shadow, /etc/sudoers, SSH keys, and other sensitive paths",
       "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 29 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
       "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=~\"snoopy|shell_history|audit|audit_raw\", instance=~\"$instance\"} |~ \"/etc/shadow|/etc/sudoers|authorized_keys|id_rsa|id_ed25519|\\.ssh/\"", "refId": "A" }]
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=~\"snoopy|shell_history|audit|audit_raw\", instance=~\"$instance\"} |~ \"/etc/shadow|/etc/sudoers|authorized_keys|id_rsa|id_ed25519|ssh/\"", "refId": "A" }]
     },
     {
-      "type": "logs",
-      "title": "Off-Hours Activity (Weekends & Late Night)",
-      "description": "Commands executed between midnight and 6 AM or on weekends — may indicate unauthorized access",
+      "type": "timeseries",
+      "title": "Commands per User Over Time",
+      "description": "Activity volume per user — spikes may indicate automated scripts or unusual behavior",
       "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 36 },
-      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"shell_history\", instance=~\"$instance\"} | regexp `cmd=(?P<cmd>.+)$` | line_format \"{{.username}} on {{.instance}} ran '{{.cmd}}'\"", "refId": "A" }]
+      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 37 },
+      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (username) (count_over_time({job=\"shell_history\", instance=~\"$instance\"} [5m]))", "legendFormat": "{{username}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Login Sessions Over Time",
+      "description": "SSH login events over time — unusual patterns may indicate credential compromise",
+      "datasource": {"type": "loki", "uid": "loki"},
+      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 37 },
+      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
+      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (instance) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [5m]))", "legendFormat": "{{instance}}", "refId": "A" }]
     }
   ],
   "refresh": "30s",

@@ -126,6 +126,7 @@ services:
     image: grafana/grafana:12.3.6-security-01
     container_name: guilty-spark-grafana
     restart: unless-stopped
+    user: "0:0"
     environment:
       - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
@@ -134,8 +135,10 @@ services:
       - GF_INSTALL_PLUGINS=
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=false
+    entrypoint: ["/bin/sh", "/branding/apply-branding.sh"]
     volumes:
       - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/branding:/branding:ro
       - grafana_data:/var/lib/grafana
     ports:
       - "3000:3000"
