@@ -9,186 +9,191 @@
   <a href="https://docs.docker.com/compose/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
 </p>
 
-Multi-server monitoring stack for GPU compute environments. Deploys Prometheus, Grafana, Loki, DCGM Exporter, and Node Exporter with one-command setup. Includes real-time user activity auditing with automatic UID-to-username resolution.
+Multi-server monitoring stack for GPU compute environments. Deploys Prometheus, Grafana, Loki, and a suite of exporters with one command. Includes user activity auditing, cost tracking, and EC2 auto-detection.
 
 ## Quick Start
 
+### Central server
+
 ```bash
 git clone <repo> && cd guilty-spark
-sudo ./scripts/setup.sh
+sudo ./scripts/setup.sh    # select "Central"
 ```
 
-The setup script handles everything interactively:
-- Asks if this is the **central** server or an **agent**
-- For agents: asks for the central server's IP and a name for this server
-- Configures auditd (command tracking)
-- Generates user metrics (UID→username mapping for dashboards)
-- Installs a cron job to keep user metrics current
-- Starts the correct Docker stack
+Open **Grafana** at `http://<server-ip>:3000` (default login: admin / admin).
 
-Then open **Grafana** http://localhost:3000 (admin/admin), **Prometheus** http://localhost:9090.
+### Remote agents
+
+```bash
+git clone <repo> && cd guilty-spark
+sudo ./scripts/setup.sh    # select "Agent", enter central server IP
+```
+
+### Register agents on central
+
+```bash
+sudo ./scripts/add-agent.sh gpu01 192.168.1.11
+sudo ./scripts/add-agent.sh minecraft-box 192.168.1.151 --no-gpu
+```
+
+Prometheus picks up new targets within 30 seconds.
 
 ## Prerequisites
 
 | Requirement | Notes |
 |-------------|-------|
-| Ubuntu | 20.04, 22.04, 24.04 — any LTS |
-| Docker | 20.10+ (or 19.03+ with `runtime: nvidia`) |
-| Docker Compose | v2 (`docker compose`) |
-| NVIDIA driver | Installed and working (`nvidia-smi`) |
-| nvidia-container-toolkit | For GPU access in containers |
+| Ubuntu / Debian / RHEL / AlmaLinux | Tested on Ubuntu 20.04-24.04, RHEL 8-9 |
+| Docker 20.10+ | With Compose v2 (`docker compose`) |
+| NVIDIA driver + nvidia-container-toolkit | Only needed on GPU servers |
 
-### Install nvidia-container-toolkit (if needed)
+<details>
+<summary>Install nvidia-container-toolkit</summary>
 
 ```bash
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
 curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add -
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
 sudo systemctl restart docker
 ```
 
-## Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `setup.sh` | Universal setup — interactive, handles central or agent role |
-| `setup-audit.sh` | Configures auditd (called by setup.sh, can also run standalone) |
-| `teardown.sh` | Reverts everything: stops stack, removes audit config, cron, user metrics |
-| `add-agent.sh` | Register a remote agent on the central node |
-| `remove-agent.sh` | Remove a remote agent from the central node |
-| `status` | Show stack health, endpoints, and scrape status for all agents |
-| `generate-user-metrics.sh` | Regenerates UID→username mapping (runs hourly via cron) |
-| `lib/distro.sh` | Distro detection helper (sourced by other scripts) |
-
-**Teardown** — Revert all changes: `sudo ./scripts/teardown.sh`
-Stops Docker stack, restores auditd.conf, removes audit rules, cron job, and user metrics. Add `--packages` to also uninstall auditd and laurel.
-
-**User Activity dashboard** — The User filter auto-discovers usernames from system users via a Prometheus metric. A cron job keeps the mapping current. No manual updates needed.
-
-## Multi-Server Setup
-
-Monitor multiple GPU servers from one central dashboard. The central server runs the full stack; remote servers run lightweight agents only.
-
-### On the central server (this machine)
-
-Register a remote agent:
-
-```bash
-./scripts/add-agent.sh gpu01 192.168.1.11
-```
-
-Prometheus starts scraping the remote within 30 seconds. The "Server" dropdown appears in all dashboards.
-
-To remove an agent: `./scripts/remove-agent.sh gpu01`
-
-### On each remote server
-
-```bash
-git clone <repo> && cd guilty-spark
-sudo ./scripts/setup.sh                # select "Agent", enter central IP + server name
-```
-
-The setup script generates `.env`, configures auditd, sets up user metrics, and starts the agent stack (DCGM Exporter, Node Exporter, Promtail). Metrics are scraped by central Prometheus; logs are pushed to central Loki.
-
-### Firewall
-
-| Server | Port | Direction | Purpose |
-|--------|------|-----------|---------|
-| Central | 3000 | Inbound | Grafana |
-| Central | 3100 | Inbound | Loki (agent log push) |
-| Central | 9090 | Inbound | Prometheus (optional) |
-| Remote | 9100 | Inbound | Node Exporter (central scrape) |
-| Remote | 9400 | Inbound | DCGM Exporter (central scrape) |
-
-## Project Layout
-
-```
-guilty-spark/
-├── docker-compose.yml              # Full stack (central server)
-├── docker-compose.agent.yml        # Agent-only (remote servers)
-├── .env.example                    # Central config template
-├── .env.agent.example              # Agent config template
-├── config/
-│   ├── prometheus/
-│   │   ├── prometheus.yml          # Scrape config (local + agents)
-│   │   └── targets/                # Agent target files (auto-loaded)
-│   ├── grafana/
-│   │   └── provisioning/           # Datasources + dashboards
-│   ├── dcgm/
-│   ├── audit/                      # STIG rules
-│   ├── loki/
-│   └── promtail/
-│       ├── promtail-config.yml     # Central node promtail
-│       └── promtail-agent.yml      # Agent node promtail
-└── scripts/
-    ├── setup.sh                    # Interactive setup (central or agent)
-    ├── setup-audit.sh              # auditd configuration
-    ├── teardown.sh                 # Revert all changes
-    ├── add-agent.sh                # Register agent on central
-    ├── remove-agent.sh             # Remove agent from central
-    ├── status                      # Stack + agent health overview
-    ├── generate-user-metrics.sh    # UID→username for Prometheus
-    └── lib/
-        └── distro.sh               # Distro detection helper
-```
+</details>
 
 ## What Gets Monitored
 
 | Source | Data |
 |--------|------|
-| DCGM | GPU utilization, VRAM, temperature, power draw, energy, clocks |
-| Node Exporter | CPU, memory, disk, network, load |
-| auditd + Laurel | Every command (execve), logins, sudo, file access |
-| auth.log | Logins, SSH, sudo, failures |
+| DCGM Exporter | GPU utilization, VRAM, temperature, power, clocks |
+| Node Exporter | CPU, memory, disk, network, load, filesystem mounts |
+| cAdvisor | Per-container CPU, memory, network, disk I/O |
+| Process Exporter | Per-process resource usage |
+| Snoopy Logger | Every command executed (execve-level capture) |
+| auditd + Laurel | Command history, logins, sudo, file access |
+| auth.log / secure | SSH sessions, failed logins, authentication events |
+| EC2 IMDS v2 | Instance type, region, AZ, lifecycle (auto-detected) |
 
 ## Dashboards
 
-- **NVIDIA DCGM Exporter Dashboard**: GPU temp, power, utilization, VRAM, clocks
-- **System — Node Exporter**: CPU, memory, disk, network, load
-- **User Activity — Audit**: Filter by user, view every command, auth log, raw audit
+| Dashboard | Description |
+|-----------|-------------|
+| Home | Cluster health overview with quick nav |
+| System | CPU, memory, disk, network per server |
+| GPUs | DCGM metrics: temp, power, utilization, VRAM, clocks |
+| GPU Allocation | Who is using which GPU and how efficiently |
+| Containers | Per-container resource usage from cAdvisor |
+| Network | Deep-dive into network traffic and interfaces |
+| Services & Storage | Listening ports, per-user disk, filesystem mounts, I/O |
+| Audit | User commands, sudo activity, shell history |
+| Security | Failed logins, firewall events, auth anomalies |
+| Chargeback | Cost estimation for on-prem and EC2 infrastructure |
 
-## Ports
+## Scripts
 
-| Service | Port |
-|---------|------|
-| Grafana | 3000 |
-| Prometheus | 9090 |
-| Loki | 3100 |
-| DCGM Exporter | 9400 (agents expose for central scrape) |
-| Node Exporter | 9100 (agents expose for central scrape) |
+| Script | Purpose |
+|--------|---------|
+| `setup.sh` | Interactive setup for central or agent role |
+| `setup-audit.sh` | Configure auditd (called by setup.sh, or standalone) |
+| `teardown.sh` | Revert all changes: stop stack, remove configs |
+| `add-agent.sh` | Register a remote agent on the central server |
+| `remove-agent.sh` | Remove a remote agent |
+| `status` | Show stack health, endpoints, agent scrape status |
+| `fetch-ec2-pricing.sh` | Download EC2 on-demand pricing from AWS public API |
+| `generate-user-metrics.sh` | UID-to-username mapping for Prometheus |
+| `generate-disk-metrics.sh` | Per-user disk usage metrics |
+| `generate-service-metrics.sh` | Listening port/service inventory |
+| `ec2-metadata.sh` | Export EC2 instance metadata via IMDSv2 |
+| `generate-ec2-cost-metrics.sh` | Calculate EC2 cost-per-hour from pricing data |
 
-## LUKS / Encrypted Storage
+## EC2 Integration
 
-LUKS-encrypted LVM works without changes. Once the volume is unlocked at boot, the stack sees normal filesystem paths. Docker, auditd, Promtail, and Node Exporter all operate on decrypted data.
+EC2 instances are auto-detected during setup (no IAM credentials needed). On EC2 agents, `ec2-metadata.sh` queries IMDSv2 for instance type, region, and lifecycle. On the central server, `generate-ec2-cost-metrics.sh` joins that metadata with pricing data to calculate hourly costs.
 
-**Considerations:**
-- Ensure `/var/log` (audit, laurel, auth) is mounted before Docker starts — this is the default boot order.
-- Docker volumes (Prometheus, Grafana, Loki data) live under `/var/lib/docker`; if that’s on LUKS, data is encrypted at rest.
-- Audit logs in `/var/log/audit` and `/var/log/laurel` are encrypted at rest when those paths are on LUKS.
+Pricing data is bundled in `config/ec2-pricing/` (33 regions) and can be refreshed:
 
-No configuration changes are required for LUKS setups.
+```bash
+./scripts/fetch-ec2-pricing.sh           # all regions
+./scripts/fetch-ec2-pricing.sh --region us-east-1  # single region
+```
 
-## Optional Overrides
+A [GitHub Actions workflow](.github/workflows/update-ec2-pricing.yml) auto-updates pricing weekly.
+
+The Chargeback dashboard separates on-prem and EC2 costs automatically.
+
+## Firewall
+
+| Server | Port | Direction | Purpose |
+|--------|------|-----------|---------|
+| Central | 3000 | Inbound | Grafana |
+| Central | 3100 | Inbound | Loki (agent log push) |
+| Central | 9090 | Inbound | Prometheus (optional, for external access) |
+| Remote | 9100 | Inbound | Node Exporter |
+| Remote | 9400 | Inbound | DCGM Exporter (GPU servers only) |
+| Remote | 8080 | Inbound | cAdvisor |
+| Remote | 9256 | Inbound | Process Exporter |
+
+## Project Layout
+
+```
+guilty-spark/
+├── docker-compose.yml            # Full stack (central server)
+├── docker-compose.agent.yml      # Agent-only (remote servers)
+├── .env.example                  # Central config template
+├── .env.agent.example            # Agent config template
+├── config/
+│   ├── prometheus/
+│   │   ├── prometheus.yml        # Scrape config
+│   │   └── targets/              # Auto-loaded agent targets
+│   ├── grafana/
+│   │   └── provisioning/
+│   │       ├── dashboards/       # 10 provisioned dashboards
+│   │       ├── datasources/
+│   │       └── alerting/         # Alert rules
+│   ├── ec2-pricing/              # Bundled per-region pricing JSON
+│   ├── dcgm/                     # DCGM metrics config
+│   ├── loki/
+│   ├── promtail/                 # Central + agent promtail configs
+│   ├── process-exporter/
+│   ├── audit/rules.d/            # STIG audit rules
+│   ├── rsyslog/                  # Log routing config
+│   ├── shell/                    # Shell command logger (bash + zsh)
+│   └── systemd/                  # Userwatch service
+├── scripts/                      # Setup, teardown, agent management, metrics
+└── .github/workflows/            # EC2 pricing auto-update
+```
+
+## Configuration
 
 Copy `.env.example` to `.env` to override defaults:
 
-- `DCGM_IMAGE` — use a different DCGM Exporter tag (e.g. for older GPU drivers)
-- `INSTANCE_NAME` — display name for this server in dashboards (defaults to `local`)
-- `GF_ADMIN_USER` / `GF_ADMIN_PASSWORD` — Grafana admin credentials (defaults to `admin`/`admin`)
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `INSTANCE_NAME` | hostname | Display name in dashboards |
+| `GF_ADMIN_USER` | `admin` | Grafana admin username |
+| `GF_ADMIN_PASSWORD` | `admin` | Grafana admin password |
+| `DCGM_IMAGE` | `nvidia/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04` | DCGM image tag |
 
 ## Stack Status
-
-Check health of all containers, endpoints, and agent scrape targets:
 
 ```bash
 ./scripts/status
 ```
 
-Output includes container status, endpoint reachability, and per-agent GPU/node scrape health from Prometheus. Colors are disabled automatically when piped.
+Shows container health, endpoint reachability, and per-agent scrape status from Prometheus.
 
-## Security
+## Teardown
 
-- Change Grafana admin password on first login
-- For production: restrict Grafana/Prometheus to localhost or VPN
+```bash
+sudo ./scripts/teardown.sh              # stop stack, remove configs
+sudo ./scripts/teardown.sh --packages   # also uninstall auditd, laurel, snoopy
+```
+
+## Security Notes
+
+- Change the Grafana admin password on first login
+- Restrict Grafana/Prometheus ports to localhost or VPN in production
 - Audit logs contain sensitive data; restrict access to `/var/log/audit` and `/var/log/laurel`
+
+## LUKS / Encrypted Storage
+
+Works without changes. Once volumes are unlocked at boot, the stack sees normal filesystem paths. Docker volumes (Prometheus, Grafana, Loki data) under `/var/lib/docker` are encrypted at rest when on LUKS.
