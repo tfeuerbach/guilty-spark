@@ -1,4 +1,4 @@
-# Guilty Spark — DoD STIG audit rules (subset)
+# DoD STIG audit rules (subset)
 # Based on linux-audit/audit-userspace 30-stig.rules
 # Compatible with Ubuntu 20.04 / 22.04 / 24.04
 

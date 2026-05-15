@@ -138,7 +138,7 @@ groups:
         for: 2m
         annotations:
           summary: "Node {{ $labels.instance }} is unreachable"
-          description: "Prometheus cannot scrape node-exporter — server may be down"
+          description: "Prometheus cannot scrape node-exporter on {{ $labels.instance }}"
         labels:
           severity: critical
 
@@ -177,7 +177,7 @@ groups:
         for: 10m
         annotations:
           summary: "Disk usage above 80% on {{ $labels.instance }}"
-          description: "Root filesystem at {{ $values.B | printf \"%.1f\" }}% — plan cleanup soon"
+          description: "Root filesystem at {{ $values.B | printf \"%.1f\" }}% on {{ $labels.instance }}"
         labels:
           severity: warning
 
@@ -211,7 +211,7 @@ groups:
         for: 15m
         annotations:
           summary: "GPU {{ $labels.gpu }} on {{ $labels.instance }} has memory allocated but 0% utilization"
-          description: "Possible zombie process holding GPU memory — {{ $labels.modelName }}"
+          description: "GPU memory allocated but 0% util - {{ $labels.modelName }} on {{ $labels.instance }}"
         labels:
           severity: warning
 

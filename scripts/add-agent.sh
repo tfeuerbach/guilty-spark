@@ -22,9 +22,9 @@ done
 
 if [ ${#ARGS[@]} -lt 2 ]; then
     echo "Usage: $0 <name> <ip> [--no-gpu]"
-    echo "  name     — hostname or friendly name for the server (e.g. gpu01)"
-    echo "  ip       — IP address of the remote server"
-    echo "  --no-gpu — skip GPU (DCGM) target for machines without NVIDIA GPUs"
+    echo "  name     - hostname or friendly name (e.g. gpu01)"
+    echo "  ip       - IP address of the remote server"
+    echo "  --no-gpu - skip GPU (DCGM) target for machines without NVIDIA GPUs"
     echo ""
     echo "Example: $0 gpu01 192.168.1.11"
     echo "         $0 webserver 192.168.1.20 --no-gpu"
@@ -86,7 +86,7 @@ add_target "$PROCESS_TARGETS" 9256
 
 echo ""
 echo "Agent '${NAME}' registered at ${IP}"
-[[ "$NO_GPU" -eq 1 ]] && echo "  (node metrics only — no GPU)"
+[[ "$NO_GPU" -eq 1 ]] && echo "  (node metrics only, no GPU)"
 echo "Prometheus will pick up the new targets within 30 seconds."
 echo ""
 echo "NOTE: This command must be run on the CENTRAL server (where Prometheus lives)."

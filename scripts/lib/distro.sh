@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Guilty Spark — Distro detection helper
+# Distro detection helper.
 # Source this from other scripts: source "$(dirname "$0")/lib/distro.sh"
 #
 # Exports:
-#   DISTRO_FAMILY   — "debian" or "rhel"
-#   PKG_INSTALL     — install command (e.g. "apt-get install -y" or "dnf install -y")
-#   PKG_REMOVE      — remove command
-#   PKG_UPDATE      — update/refresh command
-#   AUDIT_PKG       — package name for auditd
-#   AUDIT_PLUGINS_PKG — audispd plugins package (empty if not needed)
-#   AUDIT_PLUGIN_DIR  — path to audit dispatcher plugin configs
-#   AUTH_LOG_PATH   — path to auth/login log file
-#   LOG_GROUP       — group for log file ownership
+#   DISTRO_FAMILY     "debian" or "rhel"
+#   PKG_INSTALL       install command (e.g. "apt-get install -y")
+#   PKG_REMOVE        remove command
+#   PKG_UPDATE        update/refresh command
+#   AUDIT_PKG         package name for auditd
+#   AUDIT_PLUGINS_PKG audispd plugins package (empty if not needed)
+#   AUDIT_PLUGIN_DIR  path to audit dispatcher plugin configs
+#   AUTH_LOG_PATH     path to auth/login log file
+#   LOG_GROUP         group for log file ownership
 
 detect_distro() {
     if [ -f /etc/os-release ]; then
@@ -75,7 +75,7 @@ detect_distro() {
             ;;
     esac
 
-    # Audit plugin directory — RHEL 8+/Ubuntu 22.04+ use /etc/audit/plugins.d,
+    # Audit plugin directory: RHEL 8+/Ubuntu 22.04+ use /etc/audit/plugins.d,
     # older systems use /etc/audisp/plugins.d
     if [ -d /etc/audit/plugins.d ]; then
         AUDIT_PLUGIN_DIR="/etc/audit/plugins.d"

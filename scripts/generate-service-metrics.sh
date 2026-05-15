@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Guilty Spark — Generate listening service/port metrics for node-exporter textfile collector.
+# Generate listening service/port metrics for node-exporter textfile collector.
 # Enumerates all listening TCP ports, the owning process, and exports as Prometheus metrics.
 # Intended to be run via cron (e.g., every 5 minutes).
 

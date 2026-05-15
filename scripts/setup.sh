@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-# Guilty Spark — Universal Setup
-# Run on any server to set up either the central monitoring node or an agent.
-# Handles auditd, user metrics, environment config, and starts the stack.
-#
+# Set up either the central monitoring server or a remote agent.
 # Usage: sudo ./scripts/setup.sh
 
 set -e
@@ -23,7 +20,7 @@ NC='\033[0m'
 print_header() {
     echo ""
     echo -e "${CYAN}${BOLD}══════════════════════════════════════════${NC}"
-    echo -e "${CYAN}${BOLD}  Guilty Spark — Setup${NC}"
+    echo -e "${CYAN}${BOLD}  Guilty Spark Setup${NC}"
     echo -e "${CYAN}${BOLD}══════════════════════════════════════════${NC}"
     echo ""
 }
@@ -66,7 +63,7 @@ check_prereqs() {
         HAS_GPU=1
     else
         echo ""
-        print_warn "nvidia-smi not found — no NVIDIA GPU detected."
+        print_warn "nvidia-smi not found - no NVIDIA GPU detected."
         echo ""
         echo "  If this machine has GPUs, possible fixes:"
         echo "    • Install NVIDIA drivers:  sudo apt install nvidia-driver-550"
@@ -93,6 +90,14 @@ echo -e "    Detected: ${BOLD}${DISTRO_FAMILY}${NC}"
 echo ""
 check_prereqs
 
+# ─── EC2 Detection ───
+IS_EC2=false
+if curl -sf -m 2 http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1; then
+    IS_EC2=true
+    print_step "EC2 instance detected"
+    echo ""
+fi
+
 # ─── Hostname and IP ───
 SYSTEM_HOSTNAME=$(hostname -s 2>/dev/null || hostname)
 SYSTEM_IP=$(ip -4 route get 1 2>/dev/null | awk '{print $7; exit}' || hostname -I 2>/dev/null | awk '{print $1}' || echo 'unknown')
@@ -100,10 +105,10 @@ SYSTEM_IP=$(ip -4 route get 1 2>/dev/null | awk '{print $7; exit}' || hostname -
 # ─── Role selection ───
 echo -e "${BOLD}What role should this server have?${NC}"
 echo ""
-echo "  1) Central  — Full monitoring stack (Grafana, Prometheus, Loki + exporters)"
+echo "  1) Central  - Full monitoring stack (Grafana, Prometheus, Loki + exporters)"
 echo "               Run this on ONE server. All dashboards live here."
 echo ""
-echo "  2) Agent    — Exporters + log shipping only"
+echo "  2) Agent    - Exporters + log shipping only"
 echo "               Run this on every OTHER server you want to monitor."
 echo ""
 
@@ -179,14 +184,14 @@ print_step "Installing shell command logger..."
 
 # rsyslog is required for shell-history.log, auth.log, snoopy.log
 if ! command -v rsyslogd &>/dev/null; then
-    print_warn "rsyslog not found — installing (required for log routing)..."
+    print_warn "rsyslog not found - installing..."
     $PKG_INSTALL rsyslog
     systemctl enable rsyslog 2>/dev/null || true
     systemctl start rsyslog 2>/dev/null || true
     echo "    Installed rsyslog"
 fi
 
-# Install rsyslog config — 00- prefix ensures it loads before defaults
+# Install rsyslog config (00- prefix for load order)
 install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/00-guilty-spark.conf
 # Remove old filename if present
 rm -f /etc/rsyslog.d/guilty-spark-shell.conf 2>/dev/null
@@ -201,7 +206,7 @@ echo "    Installed /etc/profile.d/guilty-spark-logger.sh"
 for rcfile in /etc/bash.bashrc /etc/zsh/zshrc /etc/zshrc; do
     if [[ -f "$rcfile" ]] && ! grep -q 'guilty-spark-logger' "$rcfile" 2>/dev/null; then
         echo "" >> "$rcfile"
-        echo "# Guilty Spark — shell command logging" >> "$rcfile"
+        echo "# guilty-spark shell command logging" >> "$rcfile"
         echo '[ -f /etc/profile.d/guilty-spark-logger.sh ] && . /etc/profile.d/guilty-spark-logger.sh' >> "$rcfile"
     fi
 done
@@ -224,7 +229,7 @@ print_step "Installing user change watcher..."
 if ! command -v inotifywait &>/dev/null; then
     apt-get install -y inotify-tools -qq 2>/dev/null \
         || yum install -y inotify-tools -q 2>/dev/null \
-        || echo "    WARNING: inotify-tools not available — falling back to cron only"
+        || echo "    WARNING: inotify-tools not available - falling back to cron only"
 fi
 
 # Install the watcher script and systemd service
@@ -236,16 +241,69 @@ echo "    Enabled guilty-spark-userwatch.service (real-time user detection)"
 
 # Cron as backup (every 5 minutes) in case inotify misses NSS changes
 cat > /etc/cron.d/guilty-spark << CRONEOF
-# Guilty Spark — regenerate user metrics (backup for inotify)
+# User metrics (backup for inotify)
 */5 * * * * root ${REPO_ROOT}/scripts/generate-user-metrics.sh
-# Guilty Spark — per-user disk usage metrics (every 15 min)
+# Per-user disk usage
 */15 * * * * root ${REPO_ROOT}/scripts/generate-disk-metrics.sh
-# Guilty Spark — listening services inventory (every 5 min)
+# Listening services inventory
 */5 * * * * root ${REPO_ROOT}/scripts/generate-service-metrics.sh
 CRONEOF
 chmod 644 /etc/cron.d/guilty-spark
 echo "    Installed /etc/cron.d/guilty-spark (user metrics + disk + services)"
 echo ""
+
+# ─── EC2 integration ───
+if [[ "$IS_EC2" == true ]]; then
+    print_step "Configuring EC2 cost integration..."
+    mkdir -p /opt/guilty-spark
+
+    # Install the metadata exporter (agent-side, runs on this EC2 instance)
+    install -m 755 "$SCRIPT_DIR/ec2-metadata.sh" /opt/guilty-spark/ec2-metadata.sh
+    /opt/guilty-spark/ec2-metadata.sh || true
+    echo "    Installed EC2 metadata exporter"
+
+    # Add EC2 metadata cron
+    cat >> /etc/cron.d/guilty-spark <<'CRONEOF'
+# EC2 instance metadata
+*/5 * * * * root /opt/guilty-spark/ec2-metadata.sh
+CRONEOF
+    echo "    Added ec2-metadata.sh to cron (*/5 min)"
+    echo ""
+fi
+
+if [[ "$ROLE" == "central" ]]; then
+    print_step "Setting up EC2 pricing data..."
+    mkdir -p /opt/guilty-spark/ec2-pricing
+
+    # Copy bundled pricing files
+    if [[ -d "$REPO_ROOT/config/ec2-pricing" ]] && ls "$REPO_ROOT/config/ec2-pricing/"*.json &>/dev/null; then
+        cp "$REPO_ROOT/config/ec2-pricing/"*.json /opt/guilty-spark/ec2-pricing/
+        local_count=$(ls /opt/guilty-spark/ec2-pricing/*.json 2>/dev/null | wc -l)
+        echo "    Copied ${local_count} bundled region pricing files"
+    fi
+
+    # Try to fetch fresh pricing (non-blocking, uses bundled as fallback)
+    install -m 755 "$SCRIPT_DIR/fetch-ec2-pricing.sh" /opt/guilty-spark/fetch-ec2-pricing.sh
+    if curl -sf -m 5 "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/index.json" > /dev/null 2>&1; then
+        echo "    AWS pricing API reachable - will fetch fresh data weekly"
+    else
+        echo -e "    ${YELLOW}AWS pricing API not reachable - using bundled pricing data${NC}"
+        echo "    To update: run ./scripts/fetch-ec2-pricing.sh on a machine with internet"
+    fi
+
+    # Install cost metrics generator (central-side)
+    install -m 755 "$SCRIPT_DIR/generate-ec2-cost-metrics.sh" /opt/guilty-spark/generate-ec2-cost-metrics.sh
+
+    # Add central EC2 crons
+    cat >> /etc/cron.d/guilty-spark <<'CRONEOF'
+# EC2 cost calculation
+*/5 * * * * root /opt/guilty-spark/generate-ec2-cost-metrics.sh
+# Refresh EC2 pricing from AWS (weekly)
+0 3 * * 0 root /opt/guilty-spark/fetch-ec2-pricing.sh --all 2>/dev/null || true
+CRONEOF
+    echo "    Added EC2 cost crons (metrics */5m, pricing weekly)"
+    echo ""
+fi
 
 # ─── Step 5: Prometheus targets (central only) ───
 if [[ "$ROLE" == "central" ]]; then
@@ -286,12 +344,12 @@ for fname, port, container in entries:
         json.dump(targets, f, indent=2)
     print(f'    {fname}: {name} ({ip}) + {len(existing)} agent(s)')
 
-# Ensure gpu.json exists even without local GPU (remote agents may have GPUs)
+# Create empty gpu.json if no local GPU (remote agents may have GPUs)
 gpu_path = os.path.join(targets_dir, 'gpu.json')
 if not os.path.exists(gpu_path):
     with open(gpu_path, 'w') as f:
         json.dump([], f)
-    print(f'    gpu.json: created (empty — no local GPU)')
+    print(f'    gpu.json: created (empty, no local GPU)')
 "
     echo ""
 fi

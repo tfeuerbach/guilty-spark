@@ -1,5 +1,4 @@
-# Guilty Spark — GPU Server Monitoring Stack
-# Deployable on any Ubuntu server with NVIDIA GPU + Docker
+# guilty-spark monitoring stack
 # Usage: docker compose up -d
 
 services:
@@ -135,6 +134,7 @@ services:
       - GF_INSTALL_PLUGINS=
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/home.json
     entrypoint: ["/bin/sh", "/branding/apply-branding.sh"]
     volumes:
       - ./config/grafana/provisioning:/etc/grafana/provisioning:ro

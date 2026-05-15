@@ -12,7 +12,7 @@
       }
     ]
   },
-  "description": "This dashboard is to display the metrics from DCGM Exporter on a Kubernetes (1.13+) cluster",
+  "description": "DCGM Exporter GPU metrics.",
   "editable": true,
   "gnetId": 12239,
   "graphTooltip": 0,
@@ -21,23 +21,65 @@
     {
       "icon": "bolt",
       "tags": [],
-      "title": "System Overview",
+      "title": "Home",
+      "type": "link",
+      "url": "/d/home"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "System",
       "type": "link",
       "url": "/d/node-exporter"
     },
     {
       "icon": "bolt",
       "tags": [],
-      "title": "Network Deep Dive",
+      "title": "GPU Allocation",
+      "type": "link",
+      "url": "/d/gpu-allocation"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Containers",
+      "type": "link",
+      "url": "/d/containers"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Network",
       "type": "link",
       "url": "/d/network-deep-dive"
     },
     {
       "icon": "bolt",
       "tags": [],
-      "title": "User Activity",
+      "title": "Audit",
       "type": "link",
       "url": "/d/audit-activity"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Security",
+      "type": "link",
+      "url": "/d/security-overview"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Services & Storage",
+      "type": "link",
+      "url": "/d/services-storage"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Chargeback",
+      "type": "link",
+      "url": "/d/chargeback"
     }
   ],
   "panels": [
@@ -46,7 +88,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -133,7 +178,10 @@
       }
     },
     {
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -198,7 +246,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -286,7 +337,10 @@
     },
     {
       "cacheTimeout": null,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "gridPos": {
         "h": 8,
         "w": 6,
@@ -370,7 +424,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -465,7 +522,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -555,7 +615,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -645,7 +708,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -735,7 +801,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -824,7 +893,10 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -927,7 +999,10 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(DCGM_FI_DEV_GPU_TEMP, instance)",
         "hide": 0,
         "includeAll": true,
@@ -949,7 +1024,10 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(DCGM_FI_DEV_GPU_TEMP{instance=~\"$instance\"}, modelName)",
         "hide": 0,
         "includeAll": true,

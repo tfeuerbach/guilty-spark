@@ -1,5 +1,4 @@
-# Guilty Spark — Agent-Only Stack
-# Run on remote servers to feed metrics/logs to the central monitoring node.
+# guilty-spark agent stack (remote servers)
 # Usage:
 #   1. Copy .env.agent.example to .env and set CENTRAL_IP + INSTANCE_NAME
 #   2. docker compose -f docker-compose.agent.yml up -d

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""guilty-spark status — inspect the monitoring stack at a glance."""
+"""guilty-spark status"""
 
 import json
 import os
@@ -167,7 +167,7 @@ def main():
 
     W = 74
     print()
-    print(f"  {BOLD}Guilty Spark — Stack Status{RESET}")
+    print(f"  {BOLD}Guilty Spark Status{RESET}")
     print(f"  {'═' * W}")
 
     # ── containers ───────────────────────────────────────────────────────

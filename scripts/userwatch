@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Guilty Spark — inotify-based watcher for user database changes.
-# Triggers promtail config regeneration when users are added/removed.
+# Watch for user database changes and regenerate promtail config.
 # Installed as a systemd service by setup.sh.
 #
 # Watches:
-#   /etc/passwd       — local user changes
-#   /etc/shadow       — password changes (signals useradd completed)
-#   /var/lib/sss/db/  — SSSD cache updates (AD/LDAP environments)
+#   /etc/passwd       - local user changes
+#   /etc/shadow       - password changes (useradd completion)
+#   /var/lib/sss/db/  - SSSD cache updates (AD/LDAP)
 
 set -uo pipefail
 
@@ -25,11 +24,11 @@ run_generator() {
         return 0
     fi
     last_run=$now
-    echo "[$(date -Iseconds)] User database changed — regenerating metrics and promtail config"
+    echo "[$(date -Iseconds)] User database changed, regenerating metrics and promtail config"
     "$GENERATE_SCRIPT" 2>&1 || true
 }
 
-# Build watch list — only watch paths that exist
+# Build watch list (only paths that exist)
 WATCH_PATHS=()
 for path in /etc/passwd /etc/shadow; do
     [ -f "$path" ] && WATCH_PATHS+=("$path")

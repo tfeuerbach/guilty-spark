@@ -1,4 +1,4 @@
-# Dashboard provider — loads JSON from default/ folder
+# Dashboard provider config
 apiVersion: 1
 providers:
   - name: 'Guilty Spark'

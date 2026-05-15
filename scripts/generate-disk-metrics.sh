@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Guilty Spark — Generate per-user disk usage metrics for node-exporter textfile collector.
+# Generate per-user disk usage metrics for node-exporter textfile collector.
 # Outputs Prometheus metrics showing how much disk each user's home directory consumes.
 # Intended to be run via cron (e.g., every 15 minutes).
 

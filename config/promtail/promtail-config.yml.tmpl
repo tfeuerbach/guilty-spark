@@ -1,8 +1,7 @@
-# Guilty Spark — Promtail config (audit + auth logs → Loki)
-# Central/local node config. For agent nodes, see promtail-agent.yml.tmpl.
-# Uses env var expansion (-config.expand-env=true):
-#   INSTANCE_NAME — hostname of this server (set via .env / docker-compose)
-# Supports both Debian (auth.log) and RHEL (secure) auth log paths.
+# guilty-spark promtail config (central node)
+# For agent nodes, see promtail-agent.yml.tmpl.
+# Env vars (-config.expand-env=true):
+#   INSTANCE_NAME - hostname (set via .env / docker-compose)
 #
 # NOTE: This file is a TEMPLATE. Do not edit promtail-config.yml directly.
 # Run scripts/generate-user-metrics.sh to regenerate promtail-config.yml
@@ -60,7 +59,7 @@ scrape_configs:
       - labels:
           auid: auid
           username: username
-  # Auth log — Debian/Ubuntu
+  # Auth log (Debian/Ubuntu)
   - job_name: auth
     static_configs:
       - targets:
@@ -74,7 +73,7 @@ scrape_configs:
           expression: '(?:session opened for user |Accepted \S+ for |sudo:\s+)(?P<username>\w+)'
       - labels:
           username: username
-  # Auth log — RHEL/AlmaLinux/Rocky (same pipeline, different path)
+  # Auth log (RHEL/AlmaLinux/Rocky)
   - job_name: auth_secure
     static_configs:
       - targets:
@@ -88,7 +87,7 @@ scrape_configs:
           expression: '(?:session opened for user |Accepted \S+ for |sudo:\s+)(?P<username>\w+)'
       - labels:
           username: username
-  # Shell history — exact typed commands (bash PROMPT_COMMAND + zsh precmd)
+  # Shell history
   - job_name: shell_history
     static_configs:
       - targets:
@@ -102,7 +101,7 @@ scrape_configs:
           expression: 'user=(?P<username>\S+)\s+tty=\S+\s+cmd=(?P<cmd>.+)$'
       - labels:
           username: username
-  # Snoopy Logger — full execve capture with arguments
+  # Snoopy Logger (execve capture)
   - job_name: snoopy
     static_configs:
       - targets:

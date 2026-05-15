@@ -40,5 +40,8 @@ find "$PUBLIC/build" -name "*.js" -exec sed -i \
   -e 's|n.OpenSource="Open Source"|n.OpenSource=""|g' \
   {} +
 
+# Collapse the sidebar (mega menu) by default for new sessions
+sed -i 's|</head>|<script>try{if(!localStorage.getItem("grafana.navigation.docked")){localStorage.setItem("grafana.navigation.docked","false")}}catch(e){}</script></head>|' "$PUBLIC/views/index.html"
+
 # Start Grafana
 exec /run.sh

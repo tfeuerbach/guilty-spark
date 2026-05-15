@@ -51,10 +51,10 @@ build_user_map() {
     done < <(getent passwd)
 
     if [ "$first" = true ]; then
-        # No users resolved — emit empty string so label is not set
+        # No users resolved
         echo ''
     else
-        # Unknown UIDs get empty string — no username label applied
+        # Unknown UIDs get empty string
         tmpl="${tmpl}{{ end }}"
         echo "$tmpl"
     fi

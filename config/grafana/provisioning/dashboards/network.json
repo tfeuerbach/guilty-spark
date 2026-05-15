@@ -9,23 +9,65 @@
     {
       "icon": "bolt",
       "tags": [],
-      "title": "System Overview",
+      "title": "Home",
+      "type": "link",
+      "url": "/d/home"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "System",
       "type": "link",
       "url": "/d/node-exporter"
     },
     {
       "icon": "bolt",
       "tags": [],
-      "title": "GPU Dashboard",
+      "title": "GPUs",
       "type": "link",
       "url": "/d/dcgm-gpu"
     },
     {
       "icon": "bolt",
       "tags": [],
-      "title": "User Activity",
+      "title": "GPU Allocation",
+      "type": "link",
+      "url": "/d/gpu-allocation"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Containers",
+      "type": "link",
+      "url": "/d/containers"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Audit",
       "type": "link",
       "url": "/d/audit-activity"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Security",
+      "type": "link",
+      "url": "/d/security-overview"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Services & Storage",
+      "type": "link",
+      "url": "/d/services-storage"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Chargeback",
+      "type": "link",
+      "url": "/d/chargeback"
     }
   ],
   "panels": [
@@ -44,7 +86,10 @@
     {
       "type": "stat",
       "title": "Total Received",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
@@ -90,7 +135,10 @@
     {
       "type": "stat",
       "title": "Total Transmitted",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
@@ -136,7 +184,10 @@
     {
       "type": "stat",
       "title": "Receive Errors",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -186,7 +237,10 @@
     {
       "type": "stat",
       "title": "Transmit Errors",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -236,7 +290,10 @@
     {
       "type": "stat",
       "title": "Packets Dropped (rx)",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -286,7 +343,10 @@
     {
       "type": "stat",
       "title": "TCP Established",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -344,7 +404,10 @@
     {
       "type": "timeseries",
       "title": "Traffic by Interface (bytes/sec)",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
@@ -399,7 +462,10 @@
     {
       "type": "timeseries",
       "title": "Traffic by Interface (packets/sec)",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -466,7 +532,10 @@
     {
       "type": "timeseries",
       "title": "Network Errors",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -521,7 +590,10 @@
     {
       "type": "timeseries",
       "title": "Packets Dropped",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -576,7 +648,10 @@
     {
       "type": "timeseries",
       "title": "Interface Carrier / Link Status",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -643,7 +718,10 @@
     {
       "type": "timeseries",
       "title": "TCP Connections",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -703,7 +781,10 @@
     {
       "type": "timeseries",
       "title": "TCP Segments",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -758,7 +839,10 @@
     {
       "type": "timeseries",
       "title": "TCP Retransmits & Errors",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "pps",
@@ -830,7 +914,10 @@
     {
       "type": "timeseries",
       "title": "Conntrack Entries",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -885,7 +972,10 @@
     {
       "type": "timeseries",
       "title": "Socket Usage",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -950,7 +1040,10 @@
     {
       "type": "timeseries",
       "title": "ARP Entries",
-      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "",
@@ -1013,7 +1106,10 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(node_uname_info, job)",
         "error": null,
         "hide": 2,
@@ -1036,7 +1132,10 @@
           "text": "All",
           "value": "$__all"
         },
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(node_uname_info, instance)",
         "error": null,
         "hide": 0,

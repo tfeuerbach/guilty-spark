@@ -1,145 +1,756 @@
 {
-  "annotations": { "list": [] },
-  "description": "Security monitoring — failed logins, brute force attempts, privilege escalation, anomalous activity.",
+  "annotations": {
+    "list": []
+  },
+  "description": "Failed logins, firewall activity, and authentication events.",
   "editable": true,
   "graphTooltip": 1,
   "links": [
-    { "icon": "bolt", "tags": [], "title": "User Activity", "type": "link", "url": "/d/audit-activity" },
-    { "icon": "bolt", "tags": [], "title": "System Overview", "type": "link", "url": "/d/node-exporter" }
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Home",
+      "type": "link",
+      "url": "/d/home"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "System",
+      "type": "link",
+      "url": "/d/node-exporter"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "GPUs",
+      "type": "link",
+      "url": "/d/dcgm-gpu"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "GPU Allocation",
+      "type": "link",
+      "url": "/d/gpu-allocation"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Containers",
+      "type": "link",
+      "url": "/d/containers"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Network",
+      "type": "link",
+      "url": "/d/network-deep-dive"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Audit",
+      "type": "link",
+      "url": "/d/audit-activity"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Services & Storage",
+      "type": "link",
+      "url": "/d/services-storage"
+    },
+    {
+      "icon": "bolt",
+      "tags": [],
+      "title": "Chargeback",
+      "type": "link",
+      "url": "/d/chargeback"
+    }
   ],
   "panels": [
     {
-      "type": "row", "title": "Failed Logins & Brute Force",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
-      "collapsed": false, "panels": []
+      "type": "row",
+      "title": "Failed Logins & Brute Force",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "collapsed": false,
+      "panels": []
     },
     {
-      "type": "stat", "title": "Failed logins (24h)",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\" [$__range]))", "queryType": "instant", "refId": "A" }]
+      "type": "stat",
+      "title": "Failed logins (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\" [$__range]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
     },
     {
-      "type": "stat", "title": "Unique source IPs",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 3}, {"color": "red", "value": 10}]}, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "count(sum by (ip) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure\" | regexp `from (?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)` [$__range])))", "queryType": "instant", "refId": "A" }]
+      "type": "stat",
+      "title": "Unique source IPs",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "count(sum by (ip) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure\" | regexp `from (?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)` [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
     },
     {
-      "type": "stat", "title": "Sudo events (24h)",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 200}]}, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"sudo\" [$__range]))", "queryType": "instant", "refId": "A" }]
+      "type": "stat",
+      "title": "Sudo events (24h)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 200
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"sudo\" [$__range]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
     },
     {
-      "type": "stat", "title": "SSH logins",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 10}]}, "unit": "short" }, "overrides": [] },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
-      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value" },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [$__range]))", "queryType": "instant", "refId": "A" }]
+      "type": "stat",
+      "title": "SSH logins",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum(count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [$__range]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Failed Login Attempts Over Time",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 5 },
-      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (instance) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\" [5m]))", "legendFormat": "{{instance}}", "refId": "A" }]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            },
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (instance) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\" [5m]))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "table",
       "title": "Top Offending IPs (Brute Force)",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "custom": {"align": "auto"} }, "overrides": [{"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "displayName", "value": "Attempts"}]}] },
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 5 },
-      "options": { "showHeader": true, "sortBy": [{"displayName": "Attempts", "desc": true}] },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "topk(20, sum by (ip) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure\" | regexp `from (?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)` [$__range])))", "queryType": "instant", "refId": "A" }],
-      "transformations": [{"id": "sortBy", "options": {"sort": [{"field": "Value", "desc": true}]}}]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Attempts"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Attempts",
+            "desc": true
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(20, sum by (ip) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure\" | regexp `from (?P<ip>\\d+\\.\\d+\\.\\d+\\.\\d+)` [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Value",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "type": "logs",
       "title": "Failed Login Details",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
-      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\"", "refId": "A" }]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{job=\"auth\", instance=~\"$instance\"} |~ \"Failed|authentication failure|invalid user\"",
+          "refId": "A"
+        }
+      ]
     },
-
     {
-      "type": "row", "title": "Privilege Escalation",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
-      "collapsed": false, "panels": []
+      "type": "row",
+      "title": "Privilege Escalation",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "collapsed": false,
+      "panels": []
     },
     {
       "type": "timeseries",
       "title": "Sudo Usage by User",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 21 },
-      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (username) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"sudo\" | regexp `sudo:\\s+(?P<username>\\w+)` [5m]))", "legendFormat": "{{username}}", "refId": "A" }]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "stacking": {
+              "mode": "normal"
+            },
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (username) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"sudo\" | regexp `sudo:\\s+(?P<username>\\w+)` [5m]))",
+          "legendFormat": "{{username}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "logs",
       "title": "All Privilege Escalation Events",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 21 },
-      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=\"auth\", instance=~\"$instance\"} |~ \"sudo|pkexec|su:\"", "refId": "A" }]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{job=\"auth\", instance=~\"$instance\"} |~ \"sudo|pkexec|su:\"",
+          "refId": "A"
+        }
+      ]
     },
-
     {
-      "type": "row", "title": "Sensitive Access & User Activity",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
-      "collapsed": false, "panels": []
+      "type": "row",
+      "title": "Sensitive Access & User Activity",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "collapsed": false,
+      "panels": []
     },
     {
       "type": "logs",
       "title": "Sensitive File Access",
       "description": "Access to /etc/shadow, /etc/sudoers, SSH keys, and other sensitive paths",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
-      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "sortOrder": "Descending", "wrapLogMessage": true },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "{job=~\"snoopy|shell_history|audit|audit_raw\", instance=~\"$instance\"} |~ \"/etc/shadow|/etc/sudoers|authorized_keys|id_rsa|id_ed25519|ssh/\"", "refId": "A" }]
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 29
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{job=~\"snoopy|shell_history|audit|audit_raw\", instance=~\"$instance\"} |~ \"/etc/shadow|/etc/sudoers|authorized_keys|id_rsa|id_ed25519|ssh/\"",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Commands per User Over Time",
-      "description": "Activity volume per user — spikes may indicate automated scripts or unusual behavior",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 37 },
-      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (username) (count_over_time({job=\"shell_history\", instance=~\"$instance\"} [5m]))", "legendFormat": "{{username}}", "refId": "A" }]
+      "description": "Activity volume per user \u2014 spikes may indicate automated scripts or unusual behavior",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "stacking": {
+              "mode": "normal"
+            },
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 37
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (username) (count_over_time({job=\"shell_history\", instance=~\"$instance\"} [5m]))",
+          "legendFormat": "{{username}}",
+          "refId": "A"
+        }
+      ]
     },
     {
       "type": "timeseries",
       "title": "Login Sessions Over Time",
-      "description": "SSH login events over time — unusual patterns may indicate credential compromise",
-      "datasource": {"type": "loki", "uid": "loki"},
-      "fieldConfig": { "defaults": { "unit": "short", "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60, "stacking": {"mode": "normal"}, "showPoints": "never"} }, "overrides": [] },
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 37 },
-      "options": { "legend": {"displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"} },
-      "targets": [{ "datasource": {"type": "loki", "uid": "loki"}, "editorMode": "code", "expr": "sum by (instance) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [5m]))", "legendFormat": "{{instance}}", "refId": "A" }]
+      "description": "SSH login events over time \u2014 unusual patterns may indicate credential compromise",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "stacking": {
+              "mode": "normal"
+            },
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 37
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (instance) (count_over_time({job=\"auth\", instance=~\"$instance\"} |~ \"Accepted\" [5m]))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
     }
   ],
   "refresh": "30s",
   "schemaVersion": 38,
-  "tags": ["security", "guilty-spark"],
+  "tags": [
+    "security",
+    "guilty-spark"
+  ],
   "templating": {
     "list": [
       {
         "allValue": ".*",
-        "current": { "selected": true, "text": "All", "value": "$__all" },
-        "datasource": {"type": "loki", "uid": "loki"},
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
         "definition": "label_values({job=\"auth\"}, instance)",
         "hide": 0,
         "includeAll": true,
@@ -154,8 +765,19 @@
       }
     ]
   },
-  "time": { "from": "now-24h", "to": "now" },
-  "timepicker": { "refresh_intervals": ["10s", "30s", "1m", "5m", "15m"] },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ]
+  },
   "title": "Security Overview",
   "uid": "security-overview",
   "version": 1

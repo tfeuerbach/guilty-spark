@@ -1,9 +1,7 @@
-# Guilty Spark — Promtail config for agent nodes
-# Pushes audit + auth logs to the central Loki instance.
-# Uses env var expansion (-config.expand-env=true):
-#   CENTRAL_IP    — IP/hostname of the central server
-#   INSTANCE_NAME — friendly name for this server
-# Supports both Debian (auth.log) and RHEL (secure) auth log paths.
+# guilty-spark promtail config (agent nodes)
+# Env vars (-config.expand-env=true):
+#   CENTRAL_IP    - central server IP/hostname
+#   INSTANCE_NAME - friendly name for this server
 #
 # NOTE: This file is a TEMPLATE. Do not edit promtail-agent.yml directly.
 # Run scripts/generate-user-metrics.sh to regenerate promtail-agent.yml
@@ -85,7 +83,7 @@ scrape_configs:
           expression: '(?:session opened for user |Accepted \S+ for |sudo:\s+)(?P<username>\w+)'
       - labels:
           username: username
-  # Shell history — exact typed commands (bash PROMPT_COMMAND + zsh precmd)
+  # Shell history
   - job_name: shell_history
     static_configs:
       - targets:
@@ -99,7 +97,7 @@ scrape_configs:
           expression: 'user=(?P<username>\S+)\s+tty=\S+\s+cmd=(?P<cmd>.+)$'
       - labels:
           username: username
-  # Snoopy Logger — full execve capture with arguments
+  # Snoopy Logger (execve capture)
   - job_name: snoopy
     static_configs:
       - targets:

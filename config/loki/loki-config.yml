@@ -1,4 +1,4 @@
-# Guilty Spark — Loki (based on loki-local-config)
+# guilty-spark loki config
 auth_enabled: false
 
 server:

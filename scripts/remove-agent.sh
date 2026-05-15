@@ -8,7 +8,7 @@ set -e
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 <name>"
-    echo "  name  — the agent name to remove (e.g. gpu01)"
+    echo "  name  - the agent name to remove (e.g. gpu01)"
     exit 1
 fi
 

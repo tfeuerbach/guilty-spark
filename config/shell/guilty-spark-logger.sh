@@ -1,9 +1,5 @@
-# Guilty Spark — Shell command logger
-# Installed to /etc/profile.d/ to capture every interactive command.
-# Supports bash (PROMPT_COMMAND) and zsh (precmd).
-# Logs to syslog facility local6, picked up by rsyslog → Promtail → Loki.
-#
-# Do NOT edit in /etc/profile.d/ — managed by Guilty Spark setup.
+# Shell command logger (bash + zsh). Logs to syslog local6.
+# Do NOT edit in /etc/profile.d/ - managed by setup.sh.
 
 _gs_log_cmd() {
     logger -p local6.info -t "guilty-spark-shell[$$]" "user=$(whoami) tty=$(tty 2>/dev/null || echo none) cmd=$1"

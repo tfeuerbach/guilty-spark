@@ -1,5 +1,5 @@
 [Unit]
-Description=Guilty Spark — watch for user changes and regenerate promtail config
+Description=guilty-spark userwatch
 After=network.target docker.service
 Wants=docker.service
 

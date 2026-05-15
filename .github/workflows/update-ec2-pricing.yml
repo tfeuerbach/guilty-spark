@@ -1,0 +1,29 @@
+name: Update EC2 Pricing
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6am UTC
+  workflow_dispatch: {}
+
+jobs:
+  update-pricing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch EC2 pricing for all regions
+        run: ./scripts/fetch-ec2-pricing.sh --all
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet config/ec2-pricing/ && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add config/ec2-pricing/
+          git commit -m "chore: update EC2 pricing data ($(date -u +%Y-%m-%d))"
+          git push

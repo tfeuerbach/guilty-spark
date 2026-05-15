@@ -1,7 +1,6 @@
-# Guilty Spark — Prometheus config
-# All targets (local + remote) are managed via file_sd_configs.
-# setup.sh creates the initial local entries; add-agent.sh appends remote ones.
-# Prometheus auto-reloads target files every 30s.
+# guilty-spark prometheus config
+# Targets managed via file_sd_configs (setup.sh + add-agent.sh).
+# Auto-reloads every 30s.
 
 global:
   scrape_interval: 15s

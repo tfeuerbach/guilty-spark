@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Guilty Spark — Configure auditd for full command tracking
-# Supports Ubuntu/Debian and RHEL/AlmaLinux/Rocky.
-# Run as root. Usage: sudo ./scripts/setup-audit.sh [--stig]
+# Configure auditd for command tracking. Supports Debian and RHEL families.
+# Usage: sudo ./scripts/setup-audit.sh [--stig]
 #
-# --stig    Apply DoD STIG audit rules and config (more verbose, disk_full_action=SINGLE)
+# --stig    Apply DoD STIG audit rules (more verbose, disk_full_action=SINGLE)
 
 set -e
 
@@ -23,7 +22,7 @@ RULES_SRC="$REPO_ROOT/config/audit/rules.d"
 
 source "$SCRIPT_DIR/lib/distro.sh"
 
-echo "==> Guilty Spark — Audit Setup"
+echo "==> Audit Setup"
 echo "    Detected: ${DISTRO_FAMILY}"
 [[ "$STIG" -eq 1 ]] && echo "    STIG mode enabled"
 echo ""
@@ -62,7 +61,7 @@ done
 echo "==> Configuring auditd.conf..."
 if [[ "$STIG" -eq 1 ]]; then
   cat > /etc/audit/auditd.conf << AUDITDCONF
-# Guilty Spark — STIG mode
+# guilty-spark auditd.conf (STIG mode)
 log_file = /var/log/audit/audit.log
 log_format = RAW
 log_group = ${LOG_GROUP}
@@ -84,7 +83,7 @@ action_mail_acct = root
 AUDITDCONF
 else
   cat > /etc/audit/auditd.conf << AUDITDCONF
-# Guilty Spark — default
+# guilty-spark auditd.conf
 log_file = /var/log/audit/audit.log
 log_format = RAW
 log_group = ${LOG_GROUP}
@@ -121,7 +120,7 @@ if [[ "$STIG" -eq 1 ]] && [[ -f "$RULES_SRC/30-stig.rules" ]]; then
 fi
 
 cat > /etc/audit/rules.d/99-guilty-spark.rules << 'RULES'
-# Guilty Spark — Full command + file access tracking
+# guilty-spark audit rules
 
 # Execve: every command executed by users (auid>=1000)
 -a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=unset -k exec
@@ -156,7 +155,7 @@ if [[ "$USE_LAUREL" -eq 1 ]] && command -v laurel &>/dev/null; then
   fi
   mkdir -p /etc/laurel
   cat > /etc/laurel/config.toml << 'LAURELCONF'
-# Guilty Spark — Laurel config for Loki
+# guilty-spark laurel config
 [output]
   [output.file]
   path = "/var/log/laurel/audit.json"
@@ -235,7 +234,7 @@ SNOOPYCONF
 
   echo "    Snoopy installed and enabled (logging all execve calls)"
 else
-  echo "    Snoopy not available in repos — skipping (auditd still captures execve)"
+  echo "    Snoopy not available in repos - skipping (auditd still captures execve)"
 fi
 
 echo ""

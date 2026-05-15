@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Guilty Spark — Revert all changes (Docker stack + audit config + user metrics)
-# Supports Ubuntu/Debian and RHEL/AlmaLinux/Rocky.
-# Run as root for full teardown.
+# Revert all guilty-spark changes. Run as root for full teardown.
 #
 # Usage: sudo ./scripts/teardown.sh [--packages]
 #
@@ -19,7 +17,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 source "$SCRIPT_DIR/lib/distro.sh"
 
-echo "==> Guilty Spark — Teardown"
+echo "==> Teardown"
 echo "    Detected: ${DISTRO_FAMILY}"
 echo ""
 
