@@ -150,14 +150,66 @@ guilty-spark/
 
 ## Configuration
 
-Copy `.env.example` to `.env` to override defaults:
+Copy `.env.example` to `.env` to override defaults (setup.sh generates this automatically):
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `INSTANCE_NAME` | hostname | Display name in dashboards |
 | `GF_ADMIN_USER` | `admin` | Grafana admin username |
 | `GF_ADMIN_PASSWORD` | `admin` | Grafana admin password |
-| `DCGM_IMAGE` | `nvidia/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04` | DCGM image tag |
+| `NODE_EXPORTER_IMAGE` | `prom/node-exporter:v1.11.1` | Node Exporter image |
+| `PROMETHEUS_IMAGE` | `prom/prometheus:v3.11.3` | Prometheus image |
+| `LOKI_IMAGE` | `grafana/loki:3.7.2` | Loki image |
+| `ALLOY_IMAGE` | `grafana/alloy:v1.16.1` | Alloy (log shipper) image |
+| `PROCESS_EXPORTER_IMAGE` | `ncabatoff/process-exporter:0.8.7` | Process Exporter image |
+| `CADVISOR_IMAGE` | `gcr.io/cadvisor/cadvisor:v0.52.1` | cAdvisor image |
+| `GRAFANA_IMAGE` | `grafana/grafana:12.3.6-security-01` | Grafana image |
+| `DCGM_IMAGE` | `nvidia/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04` | DCGM Exporter image |
+
+## Iron Bank / Air-Gapped Registries
+
+Setup.sh prompts for the image source during installation. Choose **Iron Bank** for
+DoD-hardened images from `registry1.dso.mil`, or **Custom** for an internal mirror.
+
+### Iron Bank
+
+Iron Bank images require authentication. Get your CLI secret from your
+[Registry1 profile](https://registry1.dso.mil):
+
+```bash
+docker login registry1.dso.mil
+```
+
+Setup.sh handles this automatically and writes the correct image overrides to `.env`.
+
+### Internal mirror (air-gapped networks)
+
+For servers that can't reach Docker Hub or Registry1, mirror the images into an
+internal registry (GitLab Container Registry, Harbor, Nexus, etc.):
+
+```bash
+# On a machine with internet access, pull and push each image:
+MIRROR=registry.internal.mil:5000/mirrors
+
+for img in \
+  prom/node-exporter:v1.11.1 \
+  prom/prometheus:v3.11.3 \
+  grafana/loki:3.7.2 \
+  grafana/alloy:v1.16.1 \
+  ncabatoff/process-exporter:0.8.7 \
+  gcr.io/cadvisor/cadvisor:v0.52.1 \
+  grafana/grafana:12.3.6-security-01 \
+  nvidia/dcgm-exporter:4.5.2-4.8.1-ubuntu22.04; do
+    # Strip registry prefix for the mirror tag
+    name="${img#*/}"
+    docker pull "$img"
+    docker tag "$img" "$MIRROR/$name"
+    docker push "$MIRROR/$name"
+done
+```
+
+Then on each server, log in to your internal registry and run setup.sh.
+Select **Custom** and enter your registry URL (e.g. `registry.internal.mil:5000/mirrors`).
 
 ## Stack Status
 

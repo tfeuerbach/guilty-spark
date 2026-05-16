@@ -29,7 +29,7 @@ services:
       - monitoring
 
   node-exporter:
-    image: prom/node-exporter:v1.11.1
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.11.1}
     container_name: guilty-spark-node
     restart: unless-stopped
     command:
@@ -49,7 +49,7 @@ services:
       - monitoring
 
   process-exporter:
-    image: ncabatoff/process-exporter:0.8.7
+    image: ${PROCESS_EXPORTER_IMAGE:-ncabatoff/process-exporter:0.8.7}
     container_name: guilty-spark-process-exporter
     restart: unless-stopped
     privileged: true
@@ -65,7 +65,7 @@ services:
       - monitoring
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.52.1}
     container_name: guilty-spark-cadvisor
     restart: unless-stopped
     privileged: true
@@ -81,7 +81,7 @@ services:
       - monitoring
 
   alloy:
-    image: grafana/alloy:v1.16.1
+    image: ${ALLOY_IMAGE:-grafana/alloy:v1.16.1}
     container_name: guilty-spark-alloy
     restart: unless-stopped
     command:

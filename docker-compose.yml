@@ -28,7 +28,7 @@ services:
     # runtime: nvidia
 
   node-exporter:
-    image: prom/node-exporter:v1.11.1
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.11.1}
     container_name: guilty-spark-node
     restart: unless-stopped
     command:
@@ -46,7 +46,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.11.3
+    image: ${PROMETHEUS_IMAGE:-prom/prometheus:v3.11.3}
     container_name: guilty-spark-prometheus
     restart: unless-stopped
     command:
@@ -66,7 +66,7 @@ services:
       - node-exporter
 
   loki:
-    image: grafana/loki:3.7.2
+    image: ${LOKI_IMAGE:-grafana/loki:3.7.2}
     container_name: guilty-spark-loki
     restart: unless-stopped
     command: -config.file=/etc/loki/loki-config.yml
@@ -79,7 +79,7 @@ services:
       - monitoring
 
   alloy:
-    image: grafana/alloy:v1.16.1
+    image: ${ALLOY_IMAGE:-grafana/alloy:v1.16.1}
     container_name: guilty-spark-alloy
     restart: unless-stopped
     command:
@@ -99,7 +99,7 @@ services:
       - loki
 
   process-exporter:
-    image: ncabatoff/process-exporter:0.8.7
+    image: ${PROCESS_EXPORTER_IMAGE:-ncabatoff/process-exporter:0.8.7}
     container_name: guilty-spark-process-exporter
     restart: unless-stopped
     privileged: true
@@ -113,7 +113,7 @@ services:
       - monitoring
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    image: ${CADVISOR_IMAGE:-gcr.io/cadvisor/cadvisor:v0.52.1}
     container_name: guilty-spark-cadvisor
     restart: unless-stopped
     privileged: true
@@ -127,7 +127,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:12.3.6-security-01
+    image: ${GRAFANA_IMAGE:-grafana/grafana:12.3.6-security-01}
     container_name: guilty-spark-grafana
     restart: unless-stopped
     user: "0:0"

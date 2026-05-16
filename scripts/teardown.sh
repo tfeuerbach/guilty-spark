@@ -3,7 +3,7 @@
 #
 # Usage: sudo ./scripts/teardown.sh [--packages]
 #
-# --packages    Also uninstall auditd, laurel
+# --packages    Also uninstall auditd, laurel, snoopy
 
 set -e
 
@@ -21,8 +21,7 @@ echo "==> Teardown"
 echo "    Detected: ${DISTRO_FAMILY}"
 echo ""
 
-# 1. Docker stack (try both compose files)
-echo "==> Stopping and removing Docker stack..."
+echo "==> Stopping Docker stack..."
 cd "$REPO_ROOT"
 if docker compose ps -q 2>/dev/null | grep -q .; then
   docker compose down -v
@@ -35,30 +34,43 @@ else
 fi
 echo ""
 
-# 2. Root-only cleanup
 if [[ $EUID -ne 0 ]]; then
-  echo "==> Run as root to also revert audit config and cron:"
+  echo "==> Run as root to fully teardown system configs:"
   echo "    sudo $0"
   exit 0
 fi
 
-# 3. Cron job
 echo "==> Removing cron job..."
-if [[ -f /etc/cron.d/guilty-spark ]]; then
-  rm -f /etc/cron.d/guilty-spark
-  echo "    Removed /etc/cron.d/guilty-spark"
-else
-  echo "    No cron job found."
-fi
+rm -f /etc/cron.d/guilty-spark && echo "    Removed /etc/cron.d/guilty-spark" || echo "    No cron job found."
 
-# 4. User metrics textfile
-echo "==> Removing user metrics..."
-if [[ -d /var/lib/guilty-spark ]]; then
-  rm -rf /var/lib/guilty-spark
-  echo "    Removed /var/lib/guilty-spark"
-fi
+echo "==> Removing userwatch service..."
+systemctl disable --now guilty-spark-userwatch 2>/dev/null || true
+rm -f /etc/systemd/system/guilty-spark-userwatch.service
+rm -f /usr/local/bin/guilty-spark-userwatch
+systemctl daemon-reload 2>/dev/null || true
+echo "    Done."
 
-# 5. Restore auditd.conf from backup
+echo "==> Removing shell logger..."
+rm -f /etc/rsyslog.d/00-guilty-spark.conf
+rm -f /etc/profile.d/guilty-spark-logger.sh
+for rcfile in /etc/bash.bashrc /etc/zsh/zshrc /etc/zshrc; do
+  if [[ -f "$rcfile" ]]; then
+    sed -i '/guilty-spark.*shell command logging/d' "$rcfile" 2>/dev/null
+    sed -i '/guilty-spark-logger/d' "$rcfile" 2>/dev/null
+  fi
+done
+systemctl restart rsyslog 2>/dev/null || true
+echo "    Done."
+
+echo "==> Removing metrics data..."
+rm -rf /var/lib/guilty-spark
+rm -rf /opt/guilty-spark
+echo "    Done."
+
+echo "==> Removing generated alloy configs..."
+rm -f "$REPO_ROOT/config/alloy/config.yml" "$REPO_ROOT/config/alloy/agent.yml"
+echo "    Done."
+
 echo "==> Restoring auditd.conf..."
 BACKUP=$(ls -t /etc/audit/auditd.conf.bak.* 2>/dev/null | head -1)
 if [[ -n "$BACKUP" ]]; then
@@ -68,28 +80,21 @@ else
   echo "    No backup found; auditd.conf unchanged."
 fi
 
-# 6. Remove our rules
 echo "==> Removing audit rules..."
 for f in /etc/audit/rules.d/30-stig.rules /etc/audit/rules.d/99-guilty-spark.rules; do
-  if [[ -f "$f" ]]; then
-    rm -f "$f"
-    echo "    Removed $f"
-  fi
+  [[ -f "$f" ]] && rm -f "$f" && echo "    Removed $f"
 done
 
-# 7. Laurel: restore config, disable plugin
+echo "==> Restoring Laurel config..."
 if [[ -f /etc/laurel/config.toml.bak ]]; then
-  echo "==> Restoring Laurel config..."
   mv /etc/laurel/config.toml.bak /etc/laurel/config.toml
 fi
 for plugin_dir in "$AUDIT_PLUGIN_DIR" /etc/audisp/plugins.d; do
   if [[ -f "$plugin_dir/laurel.conf" ]]; then
-    echo "==> Disabling Laurel plugin..."
     sed -i 's/^active = yes/active = no/' "$plugin_dir/laurel.conf" 2>/dev/null || rm -f "$plugin_dir/laurel.conf"
   fi
 done
 
-# 8. Reload audit rules and restart auditd
 echo "==> Reloading audit rules..."
 if command -v augenrules &>/dev/null; then
   augenrules --load 2>/dev/null || true
@@ -100,22 +105,22 @@ else
   systemctl restart auditd 2>/dev/null || true
 fi
 
-# 9. Clean up .env if it was generated
 if [[ -f "$REPO_ROOT/.env" ]]; then
   rm -f "$REPO_ROOT/.env"
   echo "==> Removed .env"
 fi
 
-# 10. Optional: uninstall packages
 if [[ "$REMOVE_PACKAGES" -eq 1 ]]; then
   echo "==> Uninstalling packages..."
   $PKG_REMOVE laurel 2>/dev/null || true
+  $PKG_REMOVE snoopy 2>/dev/null || true
   $PKG_REMOVE $AUDIT_PKG $AUDIT_PLUGINS_PKG 2>/dev/null || true
-  echo "    Audit packages removed."
+  rm -f /etc/snoopy.ini 2>/dev/null
+  echo "    Done."
 fi
 
 echo ""
 echo "==> Teardown complete."
 echo ""
-echo "Note: /var/log/audit and /var/log/laurel may still contain logs."
-echo "      Remove manually if desired: rm -rf /var/log/laurel"
+echo "Logs in /var/log/audit and /var/log/laurel are preserved."
+echo "Remove manually if desired: rm -rf /var/log/laurel"

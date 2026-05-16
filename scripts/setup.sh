@@ -9,7 +9,25 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 source "$SCRIPT_DIR/lib/distro.sh"
 
-# ─── Colors ───
+# Parse image defaults from compose files so versions aren't duplicated here
+parse_image_default() {
+    local var_name="$1"
+    grep -oP "${var_name}:-\K[^}]+" "$REPO_ROOT/docker-compose.yml" 2>/dev/null \
+        || grep -oP "${var_name}:-\K[^}]+" "$REPO_ROOT/docker-compose.agent.yml" 2>/dev/null
+}
+
+IMG_NODE_EXPORTER=$(parse_image_default NODE_EXPORTER_IMAGE)
+IMG_PROMETHEUS=$(parse_image_default PROMETHEUS_IMAGE)
+IMG_LOKI=$(parse_image_default LOKI_IMAGE)
+IMG_ALLOY=$(parse_image_default ALLOY_IMAGE)
+IMG_PROCESS_EXPORTER=$(parse_image_default PROCESS_EXPORTER_IMAGE)
+IMG_CADVISOR=$(parse_image_default CADVISOR_IMAGE)
+IMG_GRAFANA=$(parse_image_default GRAFANA_IMAGE)
+IMG_DCGM=$(parse_image_default DCGM_IMAGE)
+
+# "prom/node-exporter:v1.11.1" -> "node-exporter:v1.11.1"
+img_short() { echo "${1##*/}"; }
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -92,13 +110,11 @@ check_nvidia_toolkit() {
     done
 }
 
-# ─── Root check ───
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}Must run as root: sudo ./scripts/setup.sh${NC}"
     exit 1
 fi
 
-# ─── Prereq checks ───
 check_prereqs() {
     local missing=0
     for cmd in docker curl python3; do
@@ -114,7 +130,7 @@ check_prereqs() {
     [[ "$missing" -eq 1 ]] && exit 1
 
     HAS_GPU=0
-    # nvidia-smi may not be in sudo's secure_path (especially WSL2 or custom installs)
+    # nvidia-smi may not be in sudo's secure_path
     for _p in /usr/lib/wsl/lib /usr/local/cuda/bin /usr/local/bin /usr/bin; do
         [[ -x "$_p/nvidia-smi" ]] && PATH="$_p:$PATH" && break
     done
@@ -147,7 +163,6 @@ echo -e "    Detected: ${BOLD}${DISTRO_FAMILY}${NC}"
 echo ""
 check_prereqs
 
-# ─── EC2 Detection ───
 IS_EC2=false
 if curl -sf -m 2 http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1; then
     IS_EC2=true
@@ -155,11 +170,9 @@ if curl -sf -m 2 http://169.254.169.254/latest/meta-data/ > /dev/null 2>&1; then
     echo ""
 fi
 
-# ─── Hostname and IP ───
 SYSTEM_HOSTNAME=$(hostname -s 2>/dev/null || hostname)
 SYSTEM_IP=$(ip -4 route get 1 2>/dev/null | awk '{print $7; exit}' || hostname -I 2>/dev/null | awk '{print $1}' || echo 'unknown')
 
-# ─── Role selection ───
 echo -e "${BOLD}What role should this server have?${NC}"
 echo ""
 echo "  1) Central  - Full monitoring stack (Grafana, Prometheus, Loki + exporters)"
@@ -179,7 +192,6 @@ while true; do
 done
 echo ""
 
-# ─── Server identity ───
 print_step "Server identity"
 echo ""
 echo "  Hostname: ${SYSTEM_HOSTNAME}"
@@ -190,7 +202,87 @@ read -rp "  Name for this server in dashboards [${SYSTEM_HOSTNAME}]: " INSTANCE_
 INSTANCE_NAME="${INSTANCE_NAME:-$SYSTEM_HOSTNAME}"
 echo ""
 
-# ─── Agent-specific config ───
+echo -e "${BOLD}Container image source:${NC}"
+echo ""
+echo "  1) Default   - upstream images from Docker Hub / GCR"
+echo "  2) Iron Bank - DoD-hardened images from registry1.dso.mil (requires login)"
+echo "  3) Custom    - internal registry mirror (GitLab, Harbor, Nexus, etc.)"
+echo ""
+
+IMAGE_VARS=""
+while true; do
+    read -rp "Select [1/2/3]: " image_choice
+    case "$image_choice" in
+        1) break ;;
+        2)
+            if ! docker pull --quiet "registry1.dso.mil/ironbank/opensource/prometheus/$(img_short "$IMG_NODE_EXPORTER")" > /dev/null 2>&1; then
+                echo ""
+                print_warn "Cannot pull from registry1.dso.mil. You need to log in first."
+                echo "  Get your CLI secret from https://registry1.dso.mil (Profile > CLI secret)"
+                echo ""
+                read -rp "  Registry1 username: " r1_user
+                read -rsp "  Registry1 CLI secret: " r1_pass
+                echo ""
+                if ! docker login -u "$r1_user" -p "$r1_pass" registry1.dso.mil 2>/dev/null; then
+                    echo -e "${RED}  Login failed. Check credentials and try setup again.${NC}"
+                    exit 1
+                fi
+                echo -e "  ${GREEN}Logged in to registry1.dso.mil${NC}"
+            fi
+            IMAGE_VARS="NODE_EXPORTER_IMAGE=registry1.dso.mil/ironbank/opensource/prometheus/$(img_short "$IMG_NODE_EXPORTER")
+PROMETHEUS_IMAGE=registry1.dso.mil/ironbank/opensource/prometheus/$(img_short "$IMG_PROMETHEUS")
+LOKI_IMAGE=registry1.dso.mil/ironbank/opensource/grafana/$(img_short "$IMG_LOKI")
+ALLOY_IMAGE=registry1.dso.mil/ironbank/opensource/grafana/$(img_short "$IMG_ALLOY")
+GRAFANA_IMAGE=registry1.dso.mil/ironbank/opensource/grafana/$(img_short "$IMG_GRAFANA")"
+            echo ""
+            echo -e "  ${GREEN}Using Iron Bank images${NC}"
+            break
+            ;;
+        3)
+            echo ""
+            echo "  Enter your registry base URL. Images will be pulled as:"
+            echo "    <base-url>/$(img_short "$IMG_NODE_EXPORTER")"
+            echo "    <base-url>/$(img_short "$IMG_GRAFANA")"
+            echo "    etc."
+            echo ""
+            read -rp "  Registry base URL (e.g. registry-gitlab/github.internal.com:5000/mirrors): " custom_registry
+            while [[ -z "$custom_registry" ]]; do
+                echo "  URL cannot be empty."
+                read -rp "  Registry base URL: " custom_registry
+            done
+            custom_registry="${custom_registry%/}"
+
+            IMAGE_VARS="NODE_EXPORTER_IMAGE=${custom_registry}/$(img_short "$IMG_NODE_EXPORTER")
+PROMETHEUS_IMAGE=${custom_registry}/$(img_short "$IMG_PROMETHEUS")
+LOKI_IMAGE=${custom_registry}/$(img_short "$IMG_LOKI")
+ALLOY_IMAGE=${custom_registry}/$(img_short "$IMG_ALLOY")
+PROCESS_EXPORTER_IMAGE=${custom_registry}/$(img_short "$IMG_PROCESS_EXPORTER")
+CADVISOR_IMAGE=${custom_registry}/$(img_short "$IMG_CADVISOR")
+GRAFANA_IMAGE=${custom_registry}/$(img_short "$IMG_GRAFANA")
+DCGM_IMAGE=${custom_registry}/$(img_short "$IMG_DCGM")"
+
+            echo ""
+            echo "  If this registry requires authentication, run:"
+            echo "    docker login ${custom_registry%%/*}"
+            echo ""
+            echo "  Images that must be mirrored into your registry:"
+            echo "    ${IMG_NODE_EXPORTER}"
+            echo "    ${IMG_PROMETHEUS}"
+            echo "    ${IMG_LOKI}"
+            echo "    ${IMG_ALLOY}"
+            echo "    ${IMG_PROCESS_EXPORTER}"
+            echo "    ${IMG_CADVISOR}"
+            echo "    ${IMG_GRAFANA}"
+            echo "    ${IMG_DCGM}"
+            echo ""
+            echo -e "  ${GREEN}Using custom registry: ${custom_registry}${NC}"
+            break
+            ;;
+        *) echo "Please enter 1, 2, or 3." ;;
+    esac
+done
+echo ""
+
 if [[ "$ROLE" == "agent" ]]; then
     print_step "Agent configuration"
     echo ""
@@ -207,25 +299,28 @@ if [[ "$ROLE" == "agent" ]]; then
         echo "CENTRAL_IP=${CENTRAL_IP}"
         echo "INSTANCE_NAME=${INSTANCE_NAME}"
         if [[ "$HAS_GPU" -eq 1 ]]; then echo "COMPOSE_PROFILES=gpu"; fi
+        if [[ -n "$IMAGE_VARS" ]]; then echo ""; echo "$IMAGE_VARS"; fi
     } > "$REPO_ROOT/.env"
     echo "    CENTRAL_IP=${CENTRAL_IP}"
     echo "    INSTANCE_NAME=${INSTANCE_NAME}"
     if [[ "$HAS_GPU" -eq 1 ]]; then echo "    COMPOSE_PROFILES=gpu"; fi
     if [[ "$HAS_GPU" -eq 0 ]]; then echo "    GPU monitoring: disabled (no nvidia-smi)"; fi
+    if [[ -n "$IMAGE_VARS" ]]; then echo "    Image overrides written to .env"; fi
     echo ""
 else
     print_step "Writing .env"
     {
         echo "INSTANCE_NAME=${INSTANCE_NAME}"
         if [[ "$HAS_GPU" -eq 1 ]]; then echo "COMPOSE_PROFILES=gpu"; fi
+        if [[ -n "$IMAGE_VARS" ]]; then echo ""; echo "$IMAGE_VARS"; fi
     } > "$REPO_ROOT/.env"
     echo "    INSTANCE_NAME=${INSTANCE_NAME}"
     if [[ "$HAS_GPU" -eq 1 ]]; then echo "    COMPOSE_PROFILES=gpu"; fi
     if [[ "$HAS_GPU" -eq 0 ]]; then echo "    GPU monitoring: disabled (no nvidia-smi)"; fi
+    if [[ -n "$IMAGE_VARS" ]]; then echo "    Image overrides written to .env"; fi
     echo ""
 fi
 
-# ─── STIG option ───
 echo "DoD STIG audit rules add verbose logging for file access, privilege"
 echo "escalation, time changes, and identity modifications. Recommended for"
 echo "compliance environments; increases audit log volume. See README for details."
@@ -234,15 +329,12 @@ STIG_FLAG=""
 [[ "$stig_choice" =~ ^[Yy] ]] && STIG_FLAG="--stig"
 echo ""
 
-# ─── Step 1: auditd ───
 print_step "Configuring auditd (command tracking)..."
 "$SCRIPT_DIR/setup-audit.sh" $STIG_FLAG
 echo ""
 
-# ─── Step 2: Shell command logger (bash + zsh) ───
 print_step "Installing shell command logger..."
 
-# rsyslog is required for shell-history.log, auth.log, snoopy.log
 if ! command -v rsyslogd &>/dev/null; then
     print_warn "rsyslog not found - installing..."
     $PKG_INSTALL rsyslog
@@ -251,18 +343,14 @@ if ! command -v rsyslogd &>/dev/null; then
     echo "    Installed rsyslog"
 fi
 
-# Install rsyslog config (00- prefix for load order)
 install -m 644 "$REPO_ROOT/config/rsyslog/guilty-spark-shell.conf" /etc/rsyslog.d/00-guilty-spark.conf
-# Remove old filename if present
 rm -f /etc/rsyslog.d/guilty-spark-shell.conf 2>/dev/null
 systemctl restart rsyslog 2>/dev/null || service rsyslog restart 2>/dev/null || true
 echo "    Installed /etc/rsyslog.d/00-guilty-spark.conf"
 
-# Install shell hook to /etc/profile.d/ (login shells)
 install -m 644 "$REPO_ROOT/config/shell/guilty-spark-logger.sh" /etc/profile.d/guilty-spark-logger.sh
 echo "    Installed /etc/profile.d/guilty-spark-logger.sh"
 
-# Also source from bash.bashrc and zshrc for non-login interactive shells
 for rcfile in /etc/bash.bashrc /etc/zsh/zshrc /etc/zshrc; do
     if [[ -f "$rcfile" ]] && ! grep -q 'guilty-spark-logger' "$rcfile" 2>/dev/null; then
         echo "" >> "$rcfile"
@@ -273,7 +361,6 @@ done
 echo "    Hooked into bash.bashrc / zshrc for non-login shells"
 echo ""
 
-# ─── Step 3: User metrics + alloy config ───
 print_step "Generating user metrics and alloy config..."
 "$SCRIPT_DIR/generate-user-metrics.sh"
 
@@ -282,24 +369,21 @@ echo "    Found ${user_count} system users"
 echo "    Alloy config generated with UID->username map"
 echo ""
 
-# ─── Step 4: User change watcher + cron fallback ───
 print_step "Installing user change watcher..."
 
-# Install inotify-tools if not present
 if ! command -v inotifywait &>/dev/null; then
     apt-get install -y inotify-tools -qq 2>/dev/null \
         || yum install -y inotify-tools -q 2>/dev/null \
         || echo "    WARNING: inotify-tools not available - falling back to cron only"
 fi
 
-# Install the watcher script and systemd service
 install -m 755 "$SCRIPT_DIR/userwatch" /usr/local/bin/guilty-spark-userwatch
 cp "$REPO_ROOT/config/systemd/guilty-spark-userwatch.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now guilty-spark-userwatch 2>/dev/null || true
 echo "    Enabled guilty-spark-userwatch.service (real-time user detection)"
 
-# Cron as backup (every 5 minutes) in case inotify misses NSS changes
+# cron fallback in case inotify misses NSS changes
 cat > /etc/cron.d/guilty-spark << CRONEOF
 # User metrics (backup for inotify)
 */5 * * * * root ${REPO_ROOT}/scripts/generate-user-metrics.sh
@@ -312,17 +396,13 @@ chmod 644 /etc/cron.d/guilty-spark
 echo "    Installed /etc/cron.d/guilty-spark (user metrics + disk + services)"
 echo ""
 
-# ─── EC2 integration ───
 if [[ "$IS_EC2" == true ]]; then
     print_step "Configuring EC2 cost integration..."
     mkdir -p /opt/guilty-spark
-
-    # Install the metadata exporter (agent-side, runs on this EC2 instance)
     install -m 755 "$SCRIPT_DIR/ec2-metadata.sh" /opt/guilty-spark/ec2-metadata.sh
     /opt/guilty-spark/ec2-metadata.sh || true
     echo "    Installed EC2 metadata exporter"
 
-    # Add EC2 metadata cron
     cat >> /etc/cron.d/guilty-spark <<'CRONEOF'
 # EC2 instance metadata
 */5 * * * * root /opt/guilty-spark/ec2-metadata.sh
@@ -335,14 +415,12 @@ if [[ "$ROLE" == "central" ]]; then
     print_step "Setting up EC2 pricing data..."
     mkdir -p /opt/guilty-spark/ec2-pricing
 
-    # Copy bundled pricing files
     if [[ -d "$REPO_ROOT/config/ec2-pricing" ]] && ls "$REPO_ROOT/config/ec2-pricing/"*.json &>/dev/null; then
         cp "$REPO_ROOT/config/ec2-pricing/"*.json /opt/guilty-spark/ec2-pricing/
         local_count=$(ls /opt/guilty-spark/ec2-pricing/*.json 2>/dev/null | wc -l)
         echo "    Copied ${local_count} bundled region pricing files"
     fi
 
-    # Try to fetch fresh pricing (non-blocking, uses bundled as fallback)
     install -m 755 "$SCRIPT_DIR/fetch-ec2-pricing.sh" /opt/guilty-spark/fetch-ec2-pricing.sh
     if curl -sf -m 5 "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/index.json" > /dev/null 2>&1; then
         echo "    AWS pricing API reachable - will fetch fresh data weekly"
@@ -351,10 +429,8 @@ if [[ "$ROLE" == "central" ]]; then
         echo "    To update: run ./scripts/fetch-ec2-pricing.sh on a machine with internet"
     fi
 
-    # Install cost metrics generator (central-side)
     install -m 755 "$SCRIPT_DIR/generate-ec2-cost-metrics.sh" /opt/guilty-spark/generate-ec2-cost-metrics.sh
 
-    # Add central EC2 crons
     cat >> /etc/cron.d/guilty-spark <<'CRONEOF'
 # EC2 cost calculation
 */5 * * * * root /opt/guilty-spark/generate-ec2-cost-metrics.sh
@@ -365,13 +441,10 @@ CRONEOF
     echo ""
 fi
 
-# ─── Step 5: Prometheus targets (central only) ───
 if [[ "$ROLE" == "central" ]]; then
     print_step "Configuring Prometheus targets..."
     TARGETS_DIR="$REPO_ROOT/config/prometheus/targets"
     mkdir -p "$TARGETS_DIR"
-
-    # Generate local target entries with hostname + IP
     python3 -c "
 import json, os
 
@@ -393,7 +466,7 @@ for fname, port, container in entries:
                 existing = json.load(f)
             except json.JSONDecodeError:
                 existing = []
-    # Remove any previous local entry (target contains container name or localhost)
+    # remove stale local entries before re-adding
     existing = [t for t in existing if not any(container in addr or 'localhost' in addr for addr in t.get('targets', []))]
     local_entry = {
         'targets': [f'{container}:{port}'],
@@ -404,7 +477,7 @@ for fname, port, container in entries:
         json.dump(targets, f, indent=2)
     print(f'    {fname}: {name} ({ip}) + {len(existing)} agent(s)')
 
-# Create empty gpu.json if no local GPU (remote agents may have GPUs)
+# remote agents may still have GPUs, so create an empty file
 gpu_path = os.path.join(targets_dir, 'gpu.json')
 if not os.path.exists(gpu_path):
     with open(gpu_path, 'w') as f:
@@ -414,7 +487,6 @@ if not os.path.exists(gpu_path):
     echo ""
 fi
 
-# ─── Step 6: Start the stack ───
 if [[ "$ROLE" == "central" ]]; then
     print_step "Starting central monitoring stack..."
     cd "$REPO_ROOT"
