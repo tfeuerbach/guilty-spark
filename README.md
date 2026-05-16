@@ -195,6 +195,24 @@ sudo ./scripts/teardown.sh --packages   # also uninstall auditd, laurel, snoopy
 - Audit logs contain sensitive data; restrict access to `/var/log/audit` and `/var/log/laurel`
 - A weekly [Trivy CVE scan](.github/workflows/cve-scan.yml) checks all container images for CRITICAL/HIGH vulnerabilities and opens a GitHub issue if any are found
 
+## DoD STIG Audit Rules
+
+During setup you're asked whether to enable STIG audit rules. These are a
+subset of the [linux-audit/audit-userspace](https://github.com/linux-audit/audit-userspace)
+`30-stig.rules` and add monitoring for:
+
+- System time changes
+- Identity file modifications (`/etc/passwd`, `/etc/shadow`, `/etc/group`)
+- Privilege escalation and `sudo` usage
+- Kernel module loading
+- Unauthorized file access attempts (`EACCES`, `EPERM`)
+- Login/logout and session events
+
+Enabling STIG mode also sets `disk_full_action=SINGLE` in `auditd.conf` (single-user
+mode if audit disk fills), which is required for compliance but aggressive for
+general use. If you don't have a compliance requirement, the default audit rules
+(execve tracking via Snoopy + guilty-spark's own rules) are sufficient.
+
 ## LUKS / Encrypted Storage
 
 Works without changes. Once volumes are unlocked at boot, the stack sees normal filesystem paths. Docker volumes (Prometheus, Grafana, Loki data) under `/var/lib/docker` are encrypted at rest when on LUKS.

@@ -169,6 +169,9 @@ else
 fi
 
 # ─── STIG option ───
+echo "DoD STIG audit rules add verbose logging for file access, privilege"
+echo "escalation, time changes, and identity modifications. Recommended for"
+echo "compliance environments; increases audit log volume. See README for details."
 read -rp "Include DoD STIG audit rules? [y/N]: " stig_choice
 STIG_FLAG=""
 [[ "$stig_choice" =~ ^[Yy] ]] && STIG_FLAG="--stig"
