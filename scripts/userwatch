@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Watch for user database changes and regenerate promtail config.
+# Watch for user database changes and regenerate alloy config.
 # Installed as a systemd service by setup.sh.
 #
 # Watches:
@@ -24,7 +24,7 @@ run_generator() {
         return 0
     fi
     last_run=$now
-    echo "[$(date -Iseconds)] User database changed, regenerating metrics and promtail config"
+    echo "[$(date -Iseconds)] User database changed, regenerating metrics and alloy config"
     "$GENERATE_SCRIPT" 2>&1 || true
 }
 

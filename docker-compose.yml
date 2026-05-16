@@ -28,7 +28,7 @@ services:
     # runtime: nvidia
 
   node-exporter:
-    image: prom/node-exporter:v1.10.2
+    image: prom/node-exporter:v1.11.1
     container_name: guilty-spark-node
     restart: unless-stopped
     command:
@@ -46,7 +46,7 @@ services:
       - monitoring
 
   prometheus:
-    image: prom/prometheus:v3.10.0
+    image: prom/prometheus:v3.11.3
     container_name: guilty-spark-prometheus
     restart: unless-stopped
     command:
@@ -66,7 +66,7 @@ services:
       - node-exporter
 
   loki:
-    image: grafana/loki:3.7.0
+    image: grafana/loki:3.7.2
     container_name: guilty-spark-loki
     restart: unless-stopped
     command: -config.file=/etc/loki/loki-config.yml
@@ -78,15 +78,20 @@ services:
     networks:
       - monitoring
 
-  promtail:
-    image: grafana/promtail:3.6.8
-    container_name: guilty-spark-promtail
+  alloy:
+    image: grafana/alloy:v1.16.1
+    container_name: guilty-spark-alloy
     restart: unless-stopped
-    command: -config.file=/etc/promtail/config.yml -config.expand-env=true
+    command:
+      - run
+      - --config.format=promtail
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.yml
     environment:
       - INSTANCE_NAME=${INSTANCE_NAME:-local}
     volumes:
-      - ./config/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./config/alloy/config.yml:/etc/alloy/config.yml:ro
       - /var/log:/var/log:ro
     networks:
       - monitoring
@@ -108,7 +113,7 @@ services:
       - monitoring
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.2
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
     container_name: guilty-spark-cadvisor
     restart: unless-stopped
     privileged: true

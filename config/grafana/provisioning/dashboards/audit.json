@@ -529,7 +529,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"} !~ \"cron|auditd|systemd|promtail|guilty-spark\" | regexp `\\]:\\s*(?P<cmd>.+)$` | cmd !~ \"^(logger|tty|whoami|sed|basename) \" | cmd !~ \"/proc/.*/fd\" | line_format \"{{.username}} ran {{.cmd}} on {{.instance}}\"",
+          "expr": "{job=\"snoopy\", username=~\"$user\", instance=~\"$instance\"} !~ \"cron|auditd|systemd|alloy|guilty-spark\" | regexp `\\]:\\s*(?P<cmd>.+)$` | cmd !~ \"^(logger|tty|whoami|sed|basename) \" | cmd !~ \"/proc/.*/fd\" | line_format \"{{.username}} ran {{.cmd}} on {{.instance}}\"",
           "queryType": "range",
           "refId": "A"
         }

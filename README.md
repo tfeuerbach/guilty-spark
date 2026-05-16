@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
-  <a href="https://prometheus.io"><img src="https://img.shields.io/badge/Prometheus-v3.10-E6522C?logo=prometheus&logoColor=white" alt="Prometheus"></a>
+  <a href="https://prometheus.io"><img src="https://img.shields.io/badge/Prometheus-v3.11-E6522C?logo=prometheus&logoColor=white" alt="Prometheus"></a>
   <a href="https://grafana.com"><img src="https://img.shields.io/badge/Grafana-12.3-F46800?logo=grafana&logoColor=white" alt="Grafana"></a>
   <a href="https://docs.docker.com/compose/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
 </p>
@@ -125,7 +125,8 @@ The Chargeback dashboard separates on-prem and EC2 costs automatically.
 | Server | Port | Direction | Purpose |
 |--------|------|-----------|---------|
 | Central | 3000 | Inbound | Grafana |
-| Central | 3100 | Inbound | Loki (agent log push) |
+| Central | 3100 
+| Inbound | Loki (agent log push) |
 | Central | 9090 | Inbound | Prometheus (optional, for external access) |
 | Remote | 9100 | Inbound | Node Exporter |
 | Remote | 9400 | Inbound | DCGM Exporter (GPU servers only) |
@@ -152,14 +153,14 @@ guilty-spark/
 │   ├── ec2-pricing/              # Bundled per-region pricing JSON
 │   ├── dcgm/                     # DCGM metrics config
 │   ├── loki/
-│   ├── promtail/                 # Central + agent promtail configs
+│   ├── alloy/                    # Grafana Alloy log shipping configs
 │   ├── process-exporter/
 │   ├── audit/rules.d/            # STIG audit rules
 │   ├── rsyslog/                  # Log routing config
 │   ├── shell/                    # Shell command logger (bash + zsh)
 │   └── systemd/                  # Userwatch service
 ├── scripts/                      # Setup, teardown, agent management, metrics
-└── .github/workflows/            # EC2 pricing auto-update
+└── .github/workflows/            # EC2 pricing auto-update, CVE scans
 ```
 
 ## Configuration
@@ -193,6 +194,7 @@ sudo ./scripts/teardown.sh --packages   # also uninstall auditd, laurel, snoopy
 - Change the Grafana admin password on first login
 - Restrict Grafana/Prometheus ports to localhost or VPN in production
 - Audit logs contain sensitive data; restrict access to `/var/log/audit` and `/var/log/laurel`
+- A weekly [Trivy CVE scan](.github/workflows/cve-scan.yml) checks all container images for CRITICAL/HIGH vulnerabilities and opens a GitHub issue if any are found
 
 ## LUKS / Encrypted Storage
 

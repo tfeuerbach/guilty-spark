@@ -1,11 +1,8 @@
-# guilty-spark promtail config (agent nodes)
-# Env vars (-config.expand-env=true):
-#   CENTRAL_IP    - central server IP/hostname
-#   INSTANCE_NAME - friendly name for this server
+# guilty-spark alloy config (agent nodes, promtail format)
+# Env vars: CENTRAL_IP, INSTANCE_NAME
 #
-# NOTE: This file is a TEMPLATE. Do not edit promtail-agent.yml directly.
-# Run scripts/generate-user-metrics.sh to regenerate promtail-agent.yml
-# with the current UID→username map from /etc/passwd.
+# NOTE: This file is a TEMPLATE. Do not edit agent.yml directly.
+# Run scripts/generate-user-metrics.sh to regenerate agent.yml.
 server:
   http_listen_port: 9080
   grpc_listen_port: 0

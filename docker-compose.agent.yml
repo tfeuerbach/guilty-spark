@@ -29,7 +29,7 @@ services:
       - monitoring
 
   node-exporter:
-    image: prom/node-exporter:v1.10.2
+    image: prom/node-exporter:v1.11.1
     container_name: guilty-spark-node
     restart: unless-stopped
     command:
@@ -65,7 +65,7 @@ services:
       - monitoring
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.2
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
     container_name: guilty-spark-cadvisor
     restart: unless-stopped
     privileged: true
@@ -80,16 +80,21 @@ services:
     networks:
       - monitoring
 
-  promtail:
-    image: grafana/promtail:3.6.8
-    container_name: guilty-spark-promtail
+  alloy:
+    image: grafana/alloy:v1.16.1
+    container_name: guilty-spark-alloy
     restart: unless-stopped
-    command: -config.file=/etc/promtail/config.yml -config.expand-env=true
+    command:
+      - run
+      - --config.format=promtail
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.yml
     environment:
       - CENTRAL_IP=${CENTRAL_IP}
       - INSTANCE_NAME=${INSTANCE_NAME}
     volumes:
-      - ./config/promtail/promtail-agent.yml:/etc/promtail/config.yml:ro
+      - ./config/alloy/agent.yml:/etc/alloy/config.yml:ro
       - /var/log:/var/log:ro
     networks:
       - monitoring

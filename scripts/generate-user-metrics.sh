@@ -62,8 +62,7 @@ build_user_map() {
 
 USER_MAP=$(build_user_map)
 
-# Determine which template to use (central has promtail-config.yml.tmpl,
-# agent has promtail-agent.yml.tmpl). Generate whichever exists.
+# Generate config from template, signal alloy to reload if changed.
 generate_config() {
     local tmpl_file="$1"
     local out_file="$2"
@@ -73,7 +72,6 @@ generate_config() {
         return 0
     fi
 
-    # Substitute the placeholder with the generated user map
     local new_config
     new_config=$(sed "s|@@USER_MAP@@|${USER_MAP}|g" "$tmpl_file")
 
@@ -84,20 +82,20 @@ generate_config() {
 
     echo "$new_config" > "$out_file"
 
-    # Signal promtail to reload config (if running)
+    # Signal alloy to reload config (if running)
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^${container_name}$"; then
         docker kill -s HUP "$container_name" 2>/dev/null || true
     fi
 }
 
-PROMTAIL_DIR="$REPO_ROOT/config/promtail"
+ALLOY_DIR="$REPO_ROOT/config/alloy"
 
 generate_config \
-    "$PROMTAIL_DIR/promtail-config.yml.tmpl" \
-    "$PROMTAIL_DIR/promtail-config.yml" \
-    "guilty-spark-promtail"
+    "$ALLOY_DIR/config.yml.tmpl" \
+    "$ALLOY_DIR/config.yml" \
+    "guilty-spark-alloy"
 
 generate_config \
-    "$PROMTAIL_DIR/promtail-agent.yml.tmpl" \
-    "$PROMTAIL_DIR/promtail-agent.yml" \
-    "guilty-spark-promtail"
+    "$ALLOY_DIR/agent.yml.tmpl" \
+    "$ALLOY_DIR/agent.yml" \
+    "guilty-spark-alloy"

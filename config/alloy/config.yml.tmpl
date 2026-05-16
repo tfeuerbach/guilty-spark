@@ -1,11 +1,8 @@
-# guilty-spark promtail config (central node)
-# For agent nodes, see promtail-agent.yml.tmpl.
-# Env vars (-config.expand-env=true):
-#   INSTANCE_NAME - hostname (set via .env / docker-compose)
+# guilty-spark alloy config (central node, promtail format)
+# For agent nodes, see agent.yml.tmpl.
 #
-# NOTE: This file is a TEMPLATE. Do not edit promtail-config.yml directly.
-# Run scripts/generate-user-metrics.sh to regenerate promtail-config.yml
-# with the current UID→username map from /etc/passwd.
+# NOTE: This file is a TEMPLATE. Do not edit config.yml directly.
+# Run scripts/generate-user-metrics.sh to regenerate config.yml.
 server:
   http_listen_port: 9080
   grpc_listen_port: 0

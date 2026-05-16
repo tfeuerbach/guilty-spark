@@ -213,8 +213,8 @@ done
 echo "    Hooked into bash.bashrc / zshrc for non-login shells"
 echo ""
 
-# ─── Step 3: User metrics + promtail config ───
-print_step "Generating user metrics and promtail config..."
+# ─── Step 3: User metrics + alloy config ───
+print_step "Generating user metrics and alloy config..."
 "$SCRIPT_DIR/generate-user-metrics.sh"
 
 user_count=$(grep -c 'guilty_spark_user' /var/lib/guilty-spark/textfile/users.prom 2>/dev/null || echo 0)

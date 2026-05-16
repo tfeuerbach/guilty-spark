@@ -2,9 +2,9 @@
 .env
 .env.agent
 
-# Generated promtail configs (built from .tmpl by generate-user-metrics.sh)
-config/promtail/promtail-config.yml
-config/promtail/promtail-agent.yml
+# Generated alloy configs (built from .tmpl by generate-user-metrics.sh)
+config/alloy/config.yml
+config/alloy/agent.yml
 
 # Generated Prometheus targets (built by setup.sh / add-agent.sh)
 config/prometheus/targets/
