@@ -33,6 +33,65 @@ print_warn() {
     echo -e "${YELLOW}    $1${NC}"
 }
 
+install_nvidia_toolkit() {
+    echo ""
+    echo "  Installing nvidia-container-toolkit..."
+    echo ""
+    case "$DISTRO_FAMILY" in
+        debian)
+            curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+                | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg 2>/dev/null
+            curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+                | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+                > /etc/apt/sources.list.d/nvidia-container-toolkit.list
+            apt-get update -qq
+            apt-get install -y nvidia-container-toolkit
+            ;;
+        rhel)
+            curl -fsSL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+                > /etc/yum.repos.d/nvidia-container-toolkit.repo
+            $PKG_INSTALL nvidia-container-toolkit
+            ;;
+    esac
+
+    nvidia-ctk runtime configure --runtime=docker
+    systemctl restart docker
+    echo ""
+    echo -e "  ${GREEN}nvidia-container-toolkit installed and Docker runtime configured.${NC}"
+}
+
+check_nvidia_toolkit() {
+    if command -v nvidia-ctk &>/dev/null; then
+        echo -e "    Container toolkit: ${GREEN}installed${NC}"
+        return 0
+    fi
+
+    echo ""
+    print_warn "nvidia-container-toolkit is not installed."
+    echo ""
+    echo "  Docker needs the NVIDIA Container Toolkit to access GPUs."
+    echo "  Without it, DCGM Exporter won't start and GPU metrics won't be collected."
+    echo ""
+
+    while true; do
+        read -rp "  Install nvidia-container-toolkit now? [Y/n]: " toolkit_choice
+        case "$toolkit_choice" in
+            [Nn]*)
+                echo ""
+                print_warn "Skipping toolkit install. GPU monitoring may not work."
+                echo "  You can install it later: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html"
+                echo ""
+                return 0
+                ;;
+            [Yy]*|"")
+                install_nvidia_toolkit
+                return 0
+                ;;
+            *) echo "  Please enter y or n." ;;
+        esac
+    done
+}
+
 # ─── Root check ───
 if [[ $EUID -ne 0 ]]; then
     echo -e "${RED}Must run as root: sudo ./scripts/setup.sh${NC}"
@@ -61,15 +120,13 @@ check_prereqs() {
     done
     if nvidia-smi &>/dev/null; then
         HAS_GPU=1
+        echo -e "    NVIDIA GPU: ${GREEN}detected${NC}"
+        check_nvidia_toolkit
     else
         echo ""
         print_warn "nvidia-smi not found - no NVIDIA GPU detected."
         echo ""
-        echo "  If this machine has GPUs, possible fixes:"
-        echo "    • Install NVIDIA drivers:  sudo apt install nvidia-driver-550"
-        echo "    • Install container toolkit: nvidia-ctk runtime configure"
-        echo "    • Reboot after driver install"
-        echo ""
+        echo "  If this machine has GPUs, install drivers first and re-run setup."
         echo "  If this machine has no GPUs, GPU monitoring (DCGM) will be skipped."
         echo ""
 
@@ -77,7 +134,7 @@ check_prereqs() {
             read -rp "  Continue without GPU monitoring? [y/N]: " gpu_choice
             case "$gpu_choice" in
                 [Yy]*) break ;;
-                [Nn]*|"") echo ""; echo "Exiting. Fix GPU drivers and re-run."; exit 1 ;;
+                [Nn]*|"") echo ""; echo "Exiting. Install GPU drivers and re-run."; exit 1 ;;
                 *) echo "  Please enter y or n." ;;
             esac
         done
@@ -222,7 +279,7 @@ print_step "Generating user metrics and alloy config..."
 
 user_count=$(grep -c 'guilty_spark_user' /var/lib/guilty-spark/textfile/users.prom 2>/dev/null || echo 0)
 echo "    Found ${user_count} system users"
-echo "    Promtail config generated with UID→username map"
+echo "    Alloy config generated with UID->username map"
 echo ""
 
 # ─── Step 4: User change watcher + cron fallback ───

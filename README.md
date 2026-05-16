@@ -44,21 +44,7 @@ Prometheus picks up new targets within 30 seconds.
 |-------------|-------|
 | Ubuntu / Debian / RHEL / AlmaLinux | Tested on Ubuntu 20.04-24.04, RHEL 8-9 |
 | Docker 20.10+ | With Compose v2 (`docker compose`) |
-| NVIDIA driver + nvidia-container-toolkit | Only needed on GPU servers |
-
-<details>
-<summary>Install nvidia-container-toolkit</summary>
-
-```bash
-distribution=$(. /etc/os-release; echo $ID$VERSION_ID)
-curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add -
-curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list \
-  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
-sudo systemctl restart docker
-```
-
-</details>
+| NVIDIA driver | Only needed on GPU servers (setup installs the container toolkit automatically) |
 
 ## What Gets Monitored
 
@@ -86,7 +72,7 @@ sudo systemctl restart docker
 | Services & Storage | Listening ports, per-user disk, filesystem mounts, I/O |
 | Audit | User commands, sudo activity, shell history |
 | Security | Failed logins, firewall events, auth anomalies |
-| Chargeback | Cost estimation for on-prem and EC2 infrastructure |
+| Cost Estimation | Cost estimation for on-prem and EC2 infrastructure |
 
 ## Scripts
 
@@ -118,7 +104,7 @@ Pricing data is bundled in `config/ec2-pricing/` (33 regions) and can be refresh
 
 A [GitHub Actions workflow](.github/workflows/update-ec2-pricing.yml) auto-updates pricing weekly.
 
-The Chargeback dashboard separates on-prem and EC2 costs automatically.
+The Cost Estimation dashboard separates on-prem and EC2 costs automatically.
 
 ## Firewall
 

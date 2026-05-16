@@ -77,9 +77,9 @@
     {
       "icon": "bolt",
       "tags": [],
-      "title": "Chargeback",
+      "title": "Cost Estimation",
       "type": "link",
-      "url": "/d/chargeback"
+      "url": "/d/cost-estimation"
     }
   ],
   "panels": [

@@ -1376,7 +1376,7 @@
   "refresh": "5m",
   "schemaVersion": 38,
   "tags": [
-    "chargeback",
+    "cost-estimation",
     "billing",
     "guilty-spark"
   ],
@@ -1495,7 +1495,7 @@
       "30m"
     ]
   },
-  "title": "Usage & Chargeback",
-  "uid": "chargeback",
+  "title": "Cost Estimation",
+  "uid": "cost-estimation",
   "version": 1
 }
