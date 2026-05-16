@@ -125,8 +125,7 @@ The Chargeback dashboard separates on-prem and EC2 costs automatically.
 | Server | Port | Direction | Purpose |
 |--------|------|-----------|---------|
 | Central | 3000 | Inbound | Grafana |
-| Central | 3100 
-| Inbound | Loki (agent log push) |
+| Central | 3100 | Inbound | Loki (agent log push) |
 | Central | 9090 | Inbound | Prometheus (optional, for external access) |
 | Remote | 9100 | Inbound | Node Exporter |
 | Remote | 9400 | Inbound | DCGM Exporter (GPU servers only) |
@@ -147,7 +146,7 @@ guilty-spark/
 │   │   └── targets/              # Auto-loaded agent targets
 │   ├── grafana/
 │   │   └── provisioning/
-│   │       ├── dashboards/       # 10 provisioned dashboards
+│   │       ├── dashboards/
 │   │       ├── datasources/
 │   │       └── alerting/         # Alert rules
 │   ├── ec2-pricing/              # Bundled per-region pricing JSON
